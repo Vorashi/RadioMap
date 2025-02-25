@@ -1,0 +1,33 @@
+{
+  "name": "radiomapapp",
+  "version": "1.0.0",
+  "description": "Приложение для прокладывания маршрута от точек",
+  "keywords": [
+    "[карта",
+    "рельеф]"
+  ],
+  "homepage": "https://github.com/Vorashi/RadioMap#readme",
+  "bugs": {
+    "url": "https://github.com/Vorashi/RadioMap/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Vorashi/RadioMap.git"
+  },
+  "license": "ISC",
+  "author": "Vorashi",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "test": "test script!",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {}
+}
