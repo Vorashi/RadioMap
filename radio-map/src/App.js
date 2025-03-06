@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import './App.css';
+import Input from './Input';
 
 const defaultIcon = L.icon({
     iconUrl: './img/marker-icon.png',
@@ -15,62 +17,59 @@ const defaultIcon = L.icon({
 });
 
 const App = () => {
-    const [lat, setLat] = useState('');
-    const [lon, setLon] = useState('');
-    const [elevation, setElevation] = useState(null);
-    const [markerPosition, setMarkerPosition] = useState(null);
+    const [points, setPoints] = useState([]); 
+    const [elevations, setElevations] = useState([]); 
+    const [linePositions, setLinePositions] = useState([]); 
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleAddPoint = async (lat, lng) => {
+        const newPoints = [...points, { lat, lng }];
+        setPoints(newPoints);
 
         try {
             const response = await axios.post('http://localhost:5000/elevation', {
-                lat: parseFloat(lat),
-                lon: parseFloat(lon),
+                points: [{ lat, lng }], 
             });
-            setElevation(response.data.elevation);
-            setMarkerPosition([parseFloat(lat), parseFloat(lon)]);
+            setElevations([...elevations, response.data.elevations[0]]);
+
+            if (newPoints.length === 2) {
+                setLinePositions(newPoints.map((p) => [p.lat, p.lng]));
+            }
         } catch (error) {
             console.error('Error fetching elevation data:', error);
         }
     };
 
+    const handleReset = () => {
+        setPoints([]);
+        setElevations([]);
+        setLinePositions([]);
+    };
+
+
     return (
         <div>
-            <h1>Карта с высотой точки</h1>
-            <form onSubmit={handleSubmit}>
-                <input
-                    type="text"
-                    placeholder="Широта"
-                    value={lat}
-                    onChange={(e) => setLat(e.target.value)}
-                />
-                <input
-                    type="text"
-                    placeholder="Долгота"
-                    value={lon}
-                    onChange={(e) => setLon(e.target.value)}
-                />
-                <button type="submit">Получить высоту</button>
-            </form>
+            <h1>Карта с высотой точек</h1>
+            <Input onAddPoint={handleAddPoint} onReset={handleReset} />
             <div style={{ height: '500px', width: '100%', marginTop: '20px' }}>
                 <MapContainer
-                    center={markerPosition || [45.0, 90.0]} // Центр карты
-                    zoom={5}
+                    center={[55.7558, 37.6173]}
+                    zoom={8}
                     style={{ height: '100%', width: '100%' }}
                 >
                     <TileLayer
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     />
-                    {markerPosition && (
-                        <Marker position={markerPosition} icon={defaultIcon}>
+                    {points.map((point, index) => (
+                        <Marker key={index} position={[point.lat, point.lng]} icon={defaultIcon}>
                             <Popup>
-                                Широта: {markerPosition[0].toFixed(4)}, Долгота: {markerPosition[1].toFixed(4)} 
-
-                                Высота: {elevation} м
+                                Широта: {point.lat.toFixed(4)}, Долгота: {point.lng.toFixed(4)} <br />
+                                Высота: {elevations[index]} м
                             </Popup>
                         </Marker>
+                    ))}
+                    {linePositions.length === 2 && (
+                        <Polyline positions={linePositions} color="blue" />
                     )}
                 </MapContainer>
             </div>
