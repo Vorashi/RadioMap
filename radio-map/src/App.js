@@ -4,11 +4,10 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// Фикс для иконок маркера (Leaflet требует явного указания иконок)
 const defaultIcon = L.icon({
-    iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
-    iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
-    shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+    iconUrl: './img/marker-icon.png',
+    iconRetinaUrl: './img/marker-icon-2x.png',
+    shadowUrl: './img/marker-shadow.png',
     iconSize: [25, 41],
     iconAnchor: [12, 41],
     popupAnchor: [1, -34],
@@ -25,12 +24,12 @@ const App = () => {
         e.preventDefault();
 
         try {
-            const response = await axios.post('http://localhost:3000/elevation', {
+            const response = await axios.post('http://localhost:5000/elevation', {
                 lat: parseFloat(lat),
                 lon: parseFloat(lon),
             });
             setElevation(response.data.elevation);
-            setMarkerPosition([parseFloat(lat), parseFloat(lon)]); // Устанавливаем позицию маркера
+            setMarkerPosition([parseFloat(lat), parseFloat(lon)]);
         } catch (error) {
             console.error('Error fetching elevation data:', error);
         }
