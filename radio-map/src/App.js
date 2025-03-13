@@ -6,6 +6,7 @@ import { OSM, Vector as VectorSource } from 'ol/source';
 import { Point, LineString, Circle as CircleGeometry } from 'ol/geom';
 import { Feature } from 'ol';
 import { Style, Icon, Stroke, Circle as CircleStyle, Fill, Text } from 'ol/style';
+import { fromLonLat, toLonLat } from 'ol/proj';
 import 'ol/ol.css';
 
 const drones = [
@@ -66,7 +67,7 @@ const App = () => {
         for (const chunk of chunks) {
             try {
                 const response = await axios.post('http://localhost:5000/elevation', {
-                    points: chunk.map(([lng, lat]) => ({ lat, lng })),
+                    points: chunk.map(([lng, lat]) => ({ latitude: lat, longitude: lng })),
                 });
                 allElevations.push(...response.data.elevations);
             } catch (error) {
@@ -82,8 +83,15 @@ const App = () => {
             return;
         }
 
-        if (coordinates[1] < -90 || coordinates[1] > 90) {
+        const [lng, lat] = toLonLat(coordinates);
+
+        if (lat < -90 || lat > 90) {
             alert('Широта должна быть в диапазоне от -90 до 90°!');
+            return;
+        }
+
+        if (lng < -180 || lng > 180) {
+            alert('Долгота должна быть в диапазоне от -180 до 180°!');
             return;
         }
 
@@ -142,10 +150,8 @@ const App = () => {
             if (markers.length === 1) {
                 const start = markers[0].getGeometry().getCoordinates();
                 const end = coordinates;
-
                 const intermediatePoints = interpolatePoints(start, end, 100);
-
-                const allPoints = [start, ...intermediatePoints, end];
+                const allPoints = [start, ...intermediatePoints, end].map((point) => toLonLat(point));
                 const elevations = await getElevations(allPoints);
 
                 intermediatePoints.forEach((point, index) => {
@@ -231,7 +237,7 @@ const App = () => {
 
     return (
         <div>
-            <h1>Карта с высотой точек (OpenLayers)</h1>
+            <h1>Карта с высотой точек</h1>
             <div style={{ marginBottom: '10px' }}>
                 <label>Выберите дрон: </label>
                 <select onChange={(e) => setSelectedDrone(drones[e.target.value])}>
