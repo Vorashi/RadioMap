@@ -9,43 +9,41 @@ import { Style, Icon, Stroke, Circle as CircleStyle, Fill, Text } from 'ol/style
 import 'ol/ol.css';
 
 const drones = [
-    { name: 'Дрон A', range: 10 }, // 10 км
-    { name: 'Дрон B', range: 50 }, // 50 км
-    { name: 'Дрон C', range: 100 }, // 100 км
-    { name: 'Дрон D', range: 1000 }, // 1000 км
-    { name: 'Особый дрон', range: null }, // Без ограничений
+    { name: 'Дрон A', range: 10 }, 
+    { name: 'Дрон B', range: 50 }, 
+    { name: 'Дрон C', range: 100 }, 
+    { name: 'Дрон D', range: 1000 },  
+    { name: 'Особый дрон', range: null }, 
 ];
 
 const App = () => {
     const [map, setMap] = useState(null);
     const [markers, setMarkers] = useState([]);
     const [elevations, setElevations] = useState([]);
-    const [selectedDrone, setSelectedDrone] = useState(drones[0]); // По умолчанию выбран первый дрон
+    const [selectedDrone, setSelectedDrone] = useState(drones[0]); 
     const [radiusLayer, setRadiusLayer] = useState(null);
     const mapRef = useRef(null);
 
-    // Инициализация карты
     useEffect(() => {
         const map = new Map({
             target: mapRef.current,
             layers: [
                 new TileLayer({
-                    source: new OSM(), // Используем OpenStreetMap как базовый слой
+                    source: new OSM(), 
                 }),
             ],
             view: new View({
-                center: [4182518, 7508900], // Центр карты (Москва)
+                center: [4182518, 7508900], 
                 zoom: 10,
             }),
         });
 
         setMap(map);
 
-        // Очистка карты при размонтировании компонента
         return () => map.setTarget(null);
     }, []);
 
-    // Функция для интерполяции между двумя точками
+  
     const interpolatePoints = (start, end, numPoints) => {
         const points = [];
         for (let i = 0; i <= numPoints; i++) {
@@ -57,9 +55,8 @@ const App = () => {
         return points;
     };
 
-    // Функция для получения высот с разбиением на запросы
     const getElevations = async (points) => {
-        const chunkSize = 100; // Максимум 100 точек в одном запросе
+        const chunkSize = 100; 
         const chunks = [];
         for (let i = 0; i < points.length; i += chunkSize) {
             chunks.push(points.slice(i, i + chunkSize));
@@ -68,7 +65,7 @@ const App = () => {
         const allElevations = [];
         for (const chunk of chunks) {
             try {
-                const response = await axios.post('http://localhost:3000/elevation', {
+                const response = await axios.post('http://localhost:5000/elevation', {
                     points: chunk.map(([lng, lat]) => ({ lat, lng })),
                 });
                 allElevations.push(...response.data.elevations);
@@ -79,21 +76,18 @@ const App = () => {
         return allElevations;
     };
 
-    // Обработчик клика по карте
     const handleMapClick = async (coordinates) => {
         if (!selectedDrone) {
             alert('Сначала выберите дрон!');
             return;
         }
 
-        // Проверка диапазона широты
         if (coordinates[1] < -90 || coordinates[1] > 90) {
             alert('Широта должна быть в диапазоне от -90 до 90°!');
             return;
         }
 
         try {
-            // Добавляем маркер
             const marker = new Feature({
                 geometry: new Point(coordinates),
             });
@@ -101,7 +95,7 @@ const App = () => {
             marker.setStyle(
                 new Style({
                     image: new Icon({
-                        src: 'https://docs.maptiler.com/openlayers/default-marker/marker-icon.png',
+                        src: '/radio-map/public/img/marker-icon.png',
                         scale: 0.5,
                     }),
                 })
@@ -118,9 +112,8 @@ const App = () => {
             map.addLayer(vectorLayer);
             setMarkers((prevMarkers) => [...prevMarkers, marker]);
 
-            // Если это первая точка, добавляем радиус
             if (markers.length === 0 && selectedDrone.range !== null) {
-                const radius = selectedDrone.range * 1000; // Переводим км в метры
+                const radius = selectedDrone.range * 1000; 
                 const radiusFeature = new Feature({
                     geometry: new CircleGeometry(coordinates, radius),
                 });
@@ -146,19 +139,15 @@ const App = () => {
                 setRadiusLayer(radiusLayer);
             }
 
-            // Если маркеров два, строим линию и добавляем промежуточные точки
             if (markers.length === 1) {
                 const start = markers[0].getGeometry().getCoordinates();
                 const end = coordinates;
 
-                // Интерполируем 100 промежуточных точек
                 const intermediatePoints = interpolatePoints(start, end, 100);
 
-                // Получаем высоты для всех точек
                 const allPoints = [start, ...intermediatePoints, end];
                 const elevations = await getElevations(allPoints);
 
-                // Добавляем промежуточные точки на карту
                 intermediatePoints.forEach((point, index) => {
                     const intermediateMarker = new Feature({
                         geometry: new Point(point),
@@ -191,7 +180,6 @@ const App = () => {
                     map.addLayer(intermediateLayer);
                 });
 
-                // Строим линию
                 const line = new Feature({
                     geometry: new LineString(allPoints),
                 });
@@ -220,7 +208,6 @@ const App = () => {
         }
     };
 
-    // Обработчик клика по карте
     useEffect(() => {
         if (map) {
             map.on('click', (event) => {
