@@ -5,7 +5,7 @@ import { Tile as TileLayer, Vector as VectorLayer } from 'ol/layer';
 import { OSM, Vector as VectorSource } from 'ol/source';
 import { Point, LineString } from 'ol/geom';
 import { Feature } from 'ol';
-import { Style, Icon, Stroke } from 'ol/style';
+import { Style, Icon, Stroke, Circle as CircleStyle, Fill, Text } from 'ol/style';
 import 'ol/ol.css';
 
 const App = () => {
@@ -19,86 +19,140 @@ const App = () => {
             target: mapRef.current,
             layers: [
                 new TileLayer({
-                    source: new OSM(),
+                    source: new OSM(), // Используем OpenStreetMap как базовый слой
                 }),
             ],
             view: new View({
-                center: [4182518, 7508900],
+                center: [4182518, 7508900], // Центр карты (Москва)
                 zoom: 10,
             }),
-        });
-
-        // Обработчик клика по карте
-        map.on('click', async (event) => {
-            const coordinates = event.coordinate;
-
-            try {
-                const response = await axios.post('http://localhost:3000/elevation', {
-                    points: [{ lat: coordinates[1], lng: coordinates[0] }],
-                });
-                const elevation = response.data.elevations[0];
-
-                const marker = new Feature({
-                    geometry: new Point(coordinates),
-                });
-
-                marker.setStyle(
-                    new Style({
-                        image: new Icon({
-                            src: 'https://docs.maptiler.com/openlayers/default-marker/marker-icon.png',
-                            scale: 0.5,
-                        }),
-                    })
-                );
-
-                const vectorSource = new VectorSource({
-                    features: [marker],
-                });
-
-                const vectorLayer = new VectorLayer({
-                    source: vectorSource,
-                });
-
-                map.addLayer(vectorLayer);
-                setMarkers((prevMarkers) => [...prevMarkers, marker]);
-                setElevations((prevElevations) => [...prevElevations, elevation]);
-
-                if (markers.length === 1) {
-                    const line = new Feature({
-                        geometry: new LineString([
-                            markers[0].getGeometry().getCoordinates(),
-                            coordinates,
-                        ]),
-                    });
-
-                    line.setStyle(
-                        new Style({
-                            stroke: new Stroke({
-                                color: '#3887be',
-                                width: 5,
-                            }),
-                        })
-                    );
-
-                    const lineSource = new VectorSource({
-                        features: [line],
-                    });
-
-                    const lineLayer = new VectorLayer({
-                        source: lineSource,
-                    });
-
-                    map.addLayer(lineLayer);
-                }
-            } catch (error) {
-                console.error('Error fetching elevation data:', error);
-            }
         });
 
         setMap(map);
 
         return () => map.setTarget(null);
     }, []);
+
+    const interpolatePoints = (start, end, numPoints) => {
+        const points = [];
+        for (let i = 0; i <= numPoints; i++) {
+            const fraction = i / numPoints;
+            const lat = start[1] + (end[1] - start[1]) * fraction;
+            const lng = start[0] + (end[0] - start[0]) * fraction;
+            points.push([lng, lat]);
+        }
+        return points;
+    };
+    
+    const handleMapClick = async (coordinates) => {
+        try {
+            const response = await axios.post('http://localhost:3000/elevation', {
+                points: [{ lat: coordinates[1], lng: coordinates[0] }],
+            });
+            const elevation = response.data.elevations[0];
+
+            const marker = new Feature({
+                geometry: new Point(coordinates),
+            });
+
+            marker.setStyle(
+                new Style({
+                    image: new Icon({
+                        src: 'https://docs.maptiler.com/openlayers/default-marker/marker-icon.png',
+                        scale: 0.5,
+                    }),
+                })
+            );
+
+            const vectorSource = new VectorSource({
+                features: [marker],
+            });
+
+            const vectorLayer = new VectorLayer({
+                source: vectorSource,
+            });
+
+            map.addLayer(vectorLayer);
+            setMarkers((prevMarkers) => [...prevMarkers, marker]);
+            setElevations((prevElevations) => [...prevElevations, elevation]);
+
+            if (markers.length === 1) {
+                const start = markers[0].getGeometry().getCoordinates();
+                const end = coordinates;
+                
+                const intermediatePoints = interpolatePoints(start, end, 5);
+
+                const elevationsResponse = await axios.post('http://localhost:3000/elevation', {
+                    points: intermediatePoints.map(([lng, lat]) => ({ lat, lng })),
+                });
+
+                intermediatePoints.forEach((point, index) => {
+                    const intermediateMarker = new Feature({
+                        geometry: new Point(point),
+                    });
+
+                    intermediateMarker.setStyle(
+                        new Style({
+                            image: new CircleStyle({
+                                radius: 5,
+                                fill: new Fill({ color: 'blue' }),
+                                stroke: new Stroke({ color: 'white', width: 2 }),
+                            }),
+                            text: new Text({
+                                text: `${elevationsResponse.data.elevations[index].toFixed(2)} м`,
+                                offsetY: -15,
+                                fill: new Fill({ color: 'black' }),
+                                stroke: new Stroke({ color: 'white', width: 2 }),
+                            }),
+                        })
+                    );
+
+                    const intermediateSource = new VectorSource({
+                        features: [intermediateMarker],
+                    });
+
+                    const intermediateLayer = new VectorLayer({
+                        source: intermediateSource,
+                    });
+
+                    map.addLayer(intermediateLayer);
+                });
+
+                const line = new Feature({
+                    geometry: new LineString([start, ...intermediatePoints, end]),
+                });
+
+                line.setStyle(
+                    new Style({
+                        stroke: new Stroke({
+                            color: '#3887be',
+                            width: 5,
+                        }),
+                    })
+                );
+
+                const lineSource = new VectorSource({
+                    features: [line],
+                });
+
+                const lineLayer = new VectorLayer({
+                    source: lineSource,
+                });
+
+                map.addLayer(lineLayer);
+            }
+        } catch (error) {
+            console.error('Error fetching elevation data:', error);
+        }
+    };
+
+    useEffect(() => {
+        if (map) {
+            map.on('click', (event) => {
+                handleMapClick(event.coordinate);
+            });
+        }
+    }, [map, markers]);
 
     const handleReset = () => {
         if (map) {
