@@ -1,78 +1,124 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import './App.css';
-import Input from './Input';
-
-const defaultIcon = L.icon({
-    iconUrl: './img/marker-icon.png',
-    iconRetinaUrl: './img/marker-icon-2x.png',
-    shadowUrl: './img/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41],
-});
+import { Map, View } from 'ol';
+import { Tile as TileLayer, Vector as VectorLayer } from 'ol/layer';
+import { OSM, Vector as VectorSource } from 'ol/source';
+import { Point, LineString } from 'ol/geom';
+import { Feature } from 'ol';
+import { Style, Icon, Stroke } from 'ol/style';
+import 'ol/ol.css';
 
 const App = () => {
-    const [points, setPoints] = useState([]); 
-    const [elevations, setElevations] = useState([]); 
-    const [linePositions, setLinePositions] = useState([]); 
+    const [map, setMap] = useState(null);
+    const [markers, setMarkers] = useState([]);
+    const [elevations, setElevations] = useState([]);
+    const mapRef = useRef(null);
 
-    const handleAddPoint = async (lat, lng) => {
-        const newPoints = [...points, { lat, lng }];
-        setPoints(newPoints);
+    useEffect(() => {
+        const map = new Map({
+            target: mapRef.current,
+            layers: [
+                new TileLayer({
+                    source: new OSM(),
+                }),
+            ],
+            view: new View({
+                center: [4182518, 7508900],
+                zoom: 10,
+            }),
+        });
 
-        try {
-            const response = await axios.post('http://localhost:5000/elevation', {
-                points: [{ lat, lng }], 
-            });
-            setElevations([...elevations, response.data.elevations[0]]);
+        // Обработчик клика по карте
+        map.on('click', async (event) => {
+            const coordinates = event.coordinate;
 
-            if (newPoints.length === 2) {
-                setLinePositions(newPoints.map((p) => [p.lat, p.lng]));
+            try {
+                const response = await axios.post('http://localhost:3000/elevation', {
+                    points: [{ lat: coordinates[1], lng: coordinates[0] }],
+                });
+                const elevation = response.data.elevations[0];
+
+                const marker = new Feature({
+                    geometry: new Point(coordinates),
+                });
+
+                marker.setStyle(
+                    new Style({
+                        image: new Icon({
+                            src: 'https://docs.maptiler.com/openlayers/default-marker/marker-icon.png',
+                            scale: 0.5,
+                        }),
+                    })
+                );
+
+                const vectorSource = new VectorSource({
+                    features: [marker],
+                });
+
+                const vectorLayer = new VectorLayer({
+                    source: vectorSource,
+                });
+
+                map.addLayer(vectorLayer);
+                setMarkers((prevMarkers) => [...prevMarkers, marker]);
+                setElevations((prevElevations) => [...prevElevations, elevation]);
+
+                if (markers.length === 1) {
+                    const line = new Feature({
+                        geometry: new LineString([
+                            markers[0].getGeometry().getCoordinates(),
+                            coordinates,
+                        ]),
+                    });
+
+                    line.setStyle(
+                        new Style({
+                            stroke: new Stroke({
+                                color: '#3887be',
+                                width: 5,
+                            }),
+                        })
+                    );
+
+                    const lineSource = new VectorSource({
+                        features: [line],
+                    });
+
+                    const lineLayer = new VectorLayer({
+                        source: lineSource,
+                    });
+
+                    map.addLayer(lineLayer);
+                }
+            } catch (error) {
+                console.error('Error fetching elevation data:', error);
             }
-        } catch (error) {
-            console.error('Error fetching elevation data:', error);
+        });
+
+        setMap(map);
+
+        return () => map.setTarget(null);
+    }, []);
+
+    const handleReset = () => {
+        if (map) {
+            map.getLayers().forEach((layer) => {
+                if (layer instanceof VectorLayer) {
+                    map.removeLayer(layer);
+                }
+            });
+            setMarkers([]);
+            setElevations([]);
         }
     };
 
-    const handleReset = () => {
-        setPoints([]);
-        setElevations([]);
-        setLinePositions([]);
-    };
-
-
     return (
         <div>
-            <h1>Карта с высотой точек</h1>
-            <Input onAddPoint={handleAddPoint} onReset={handleReset} />
-            <div style={{ height: '500px', width: '100%', marginTop: '20px' }}>
-                <MapContainer
-                    center={[55.7558, 37.6173]}
-                    zoom={8}
-                    style={{ height: '100%', width: '100%' }}
-                >
-                    <TileLayer
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    />
-                    {points.map((point, index) => (
-                        <Marker key={index} position={[point.lat, point.lng]} icon={defaultIcon}>
-                            <Popup>
-                                Широта: {point.lat.toFixed(4)}, Долгота: {point.lng.toFixed(4)} <br />
-                                Высота: {elevations[index]} м
-                            </Popup>
-                        </Marker>
-                    ))}
-                    {linePositions.length === 2 && (
-                        <Polyline positions={linePositions} color="blue" />
-                    )}
-                </MapContainer>
-            </div>
+            <h1>Карта с высотой точек (OpenLayers)</h1>
+            <button onClick={handleReset} style={{ marginBottom: '10px' }}>
+                Сбросить
+            </button>
+            <div ref={mapRef} style={{ height: '500px', width: '100%' }} />
         </div>
     );
 };
