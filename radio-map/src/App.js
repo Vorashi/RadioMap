@@ -9,43 +9,40 @@ import { Style, Icon, Stroke, Circle as CircleStyle, Fill, Text } from 'ol/style
 import 'ol/ol.css';
 
 const drones = [
-    { name: 'Дрон A', range: 10 }, // 10 км
-    { name: 'Дрон B', range: 50 }, // 50 км
-    { name: 'Дрон C', range: 100 }, // 100 км
-    { name: 'Дрон D', range: 1000 }, // 1000 км
-    { name: 'Особый дрон', range: null }, // Без ограничений
+    { name: 'Дрон A', range: 10 }, 
+    { name: 'Дрон B', range: 50 }, 
+    { name: 'Дрон C', range: 100 }, 
+    { name: 'Дрон D', range: 1000 }, 
+    { name: 'Особый дрон', range: null }, 
 ];
 
 const App = () => {
     const [map, setMap] = useState(null);
     const [markers, setMarkers] = useState([]);
     const [elevations, setElevations] = useState([]);
-    const [selectedDrone, setSelectedDrone] = useState(null);
+    const [selectedDrone, setSelectedDrone] = useState(drones[0]);
     const [radiusLayer, setRadiusLayer] = useState(null);
     const mapRef = useRef(null);
 
-    // Инициализация карты
     useEffect(() => {
         const map = new Map({
             target: mapRef.current,
             layers: [
                 new TileLayer({
-                    source: new OSM(), // Используем OpenStreetMap как базовый слой
+                    source: new OSM(),
                 }),
             ],
             view: new View({
-                center: [4182518, 7508900], // Центр карты (Москва)
+                center: [4182518, 7508900], 
                 zoom: 10,
             }),
         });
 
         setMap(map);
 
-        // Очистка карты при размонтировании компонента
         return () => map.setTarget(null);
     }, []);
 
-    // Функция для интерполяции между двумя точками
     const interpolatePoints = (start, end, numPoints) => {
         const points = [];
         for (let i = 0; i <= numPoints; i++) {
@@ -57,7 +54,6 @@ const App = () => {
         return points;
     };
 
-    // Обработчик клика по карте
     const handleMapClick = async (coordinates) => {
         if (!selectedDrone) {
             alert('Сначала выберите дрон!');
@@ -65,12 +61,11 @@ const App = () => {
         }
 
         try {
-            const response = await axios.post('http://localhost:3000/elevation', {
+            const response = await axios.post('http://localhost:5000/elevation', {
                 points: [{ lat: coordinates[1], lng: coordinates[0] }],
             });
             const elevation = response.data.elevations[0];
 
-            // Добавляем маркер
             const marker = new Feature({
                 geometry: new Point(coordinates),
             });
@@ -78,7 +73,7 @@ const App = () => {
             marker.setStyle(
                 new Style({
                     image: new Icon({
-                        src: 'https://docs.maptiler.com/openlayers/default-marker/marker-icon.png',
+                        src: '/radio-map/public/img/marker-icon.png',
                         scale: 0.5,
                     }),
                 })
@@ -96,9 +91,8 @@ const App = () => {
             setMarkers((prevMarkers) => [...prevMarkers, marker]);
             setElevations((prevElevations) => [...prevElevations, elevation]);
 
-            // Если это первая точка, добавляем радиус
             if (markers.length === 0 && selectedDrone.range !== null) {
-                const radius = selectedDrone.range * 1000; // Переводим км в метры
+                const radius = selectedDrone.range * 1000; 
                 const radiusFeature = new Feature({
                     geometry: new CircleGeometry(coordinates, radius),
                 });
@@ -124,20 +118,16 @@ const App = () => {
                 setRadiusLayer(radiusLayer);
             }
 
-            // Если маркеров два, строим линию и добавляем промежуточные точки
             if (markers.length === 1) {
                 const start = markers[0].getGeometry().getCoordinates();
                 const end = coordinates;
 
-                // Интерполируем 5 промежуточных точек
                 const intermediatePoints = interpolatePoints(start, end, 5);
 
-                // Запрашиваем высоты для промежуточных точек
-                const elevationsResponse = await axios.post('http://localhost:3000/elevation', {
+                const elevationsResponse = await axios.post('http://localhost:5000/elevation', {
                     points: intermediatePoints.map(([lng, lat]) => ({ lat, lng })),
                 });
 
-                // Добавляем промежуточные точки на карту
                 intermediatePoints.forEach((point, index) => {
                     const intermediateMarker = new Feature({
                         geometry: new Point(point),
@@ -170,7 +160,6 @@ const App = () => {
                     map.addLayer(intermediateLayer);
                 });
 
-                // Строим линию
                 const line = new Feature({
                     geometry: new LineString([start, ...intermediatePoints, end]),
                 });
@@ -199,7 +188,6 @@ const App = () => {
         }
     };
 
-    // Обработчик клика по карте
     useEffect(() => {
         if (map) {
             map.on('click', (event) => {
