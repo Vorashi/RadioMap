@@ -20,7 +20,7 @@ const App = () => {
     const [map, setMap] = useState(null);
     const [markers, setMarkers] = useState([]);
     const [elevations, setElevations] = useState([]);
-    const [selectedDrone, setSelectedDrone] = useState(null);
+    const [selectedDrone, setSelectedDrone] = useState(drones[0]); // По умолчанию выбран первый дрон
     const [radiusLayer, setRadiusLayer] = useState(null);
     const mapRef = useRef(null);
 
@@ -57,6 +57,28 @@ const App = () => {
         return points;
     };
 
+    // Функция для получения высот с разбиением на запросы
+    const getElevations = async (points) => {
+        const chunkSize = 100; // Максимум 100 точек в одном запросе
+        const chunks = [];
+        for (let i = 0; i < points.length; i += chunkSize) {
+            chunks.push(points.slice(i, i + chunkSize));
+        }
+
+        const allElevations = [];
+        for (const chunk of chunks) {
+            try {
+                const response = await axios.post('http://localhost:3000/elevation', {
+                    points: chunk.map(([lng, lat]) => ({ lat, lng })),
+                });
+                allElevations.push(...response.data.elevations);
+            } catch (error) {
+                console.error('Error fetching elevation data:', error);
+            }
+        }
+        return allElevations;
+    };
+
     // Обработчик клика по карте
     const handleMapClick = async (coordinates) => {
         if (!selectedDrone) {
@@ -64,12 +86,13 @@ const App = () => {
             return;
         }
 
-        try {
-            const response = await axios.post('http://localhost:3000/elevation', {
-                points: [{ lat: coordinates[1], lng: coordinates[0] }],
-            });
-            const elevation = response.data.elevations[0];
+        // Проверка диапазона широты
+        if (coordinates[1] < -90 || coordinates[1] > 90) {
+            alert('Широта должна быть в диапазоне от -90 до 90°!');
+            return;
+        }
 
+        try {
             // Добавляем маркер
             const marker = new Feature({
                 geometry: new Point(coordinates),
@@ -94,7 +117,6 @@ const App = () => {
 
             map.addLayer(vectorLayer);
             setMarkers((prevMarkers) => [...prevMarkers, marker]);
-            setElevations((prevElevations) => [...prevElevations, elevation]);
 
             // Если это первая точка, добавляем радиус
             if (markers.length === 0 && selectedDrone.range !== null) {
@@ -129,13 +151,12 @@ const App = () => {
                 const start = markers[0].getGeometry().getCoordinates();
                 const end = coordinates;
 
-                // Интерполируем 5 промежуточных точек
-                const intermediatePoints = interpolatePoints(start, end, 5);
+                // Интерполируем 100 промежуточных точек
+                const intermediatePoints = interpolatePoints(start, end, 100);
 
-                // Запрашиваем высоты для промежуточных точек
-                const elevationsResponse = await axios.post('http://localhost:3000/elevation', {
-                    points: intermediatePoints.map(([lng, lat]) => ({ lat, lng })),
-                });
+                // Получаем высоты для всех точек
+                const allPoints = [start, ...intermediatePoints, end];
+                const elevations = await getElevations(allPoints);
 
                 // Добавляем промежуточные точки на карту
                 intermediatePoints.forEach((point, index) => {
@@ -151,7 +172,7 @@ const App = () => {
                                 stroke: new Stroke({ color: 'white', width: 2 }),
                             }),
                             text: new Text({
-                                text: `${elevationsResponse.data.elevations[index].toFixed(2)} м`,
+                                text: `${elevations[index + 1].toFixed(2)} м`,
                                 offsetY: -15,
                                 fill: new Fill({ color: 'black' }),
                                 stroke: new Stroke({ color: 'white', width: 2 }),
@@ -172,7 +193,7 @@ const App = () => {
 
                 // Строим линию
                 const line = new Feature({
-                    geometry: new LineString([start, ...intermediatePoints, end]),
+                    geometry: new LineString(allPoints),
                 });
 
                 line.setStyle(
