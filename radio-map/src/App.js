@@ -8,6 +8,7 @@ import { Feature } from 'ol';
 import { Style, Icon, Stroke, Circle as CircleStyle, Fill, Text } from 'ol/style';
 import { fromLonLat, toLonLat } from 'ol/proj';
 import 'ol/ol.css';
+import './App.css';
 
 const drones = [
     { name: 'Дрон A', range: 10 }, 
@@ -21,8 +22,10 @@ const App = () => {
     const [map, setMap] = useState(null);
     const [markers, setMarkers] = useState([]);
     const [elevations, setElevations] = useState([]);
-    const [selectedDrone, setSelectedDrone] = useState(drones[0]); 
+    const [selectedDrone, setSelectedDrone] = useState([]); 
     const [radiusLayer, setRadiusLayer] = useState(null);
+    const [lineLayer, setLineLayer] = useState(null);
+    const [hoveredElevation, setHoveredElevation] = useState(null)
     const mapRef = useRef(null);
 
     useEffect(() => {
@@ -56,6 +59,7 @@ const App = () => {
         return points;
     };
 
+    //получение высот через разбиение
     const getElevations = async (points) => {
         const chunkSize = 100; 
         const chunks = [];
@@ -71,12 +75,13 @@ const App = () => {
                 });
                 allElevations.push(...response.data.elevations);
             } catch (error) {
-                console.error('Error fetching elevation data:', error);
+                console.error('Error fetching elevation data Fetch GetElevations:', error);
             }
         }
         return allElevations;
     };
 
+    //Мап кликер просто чудище огромное
     const handleMapClick = async (coordinates) => {
         if (!selectedDrone) {
             alert('Сначала выберите дрон!');
@@ -93,6 +98,18 @@ const App = () => {
         if (lng < -180 || lng > 180) {
             alert('Долгота должна быть в диапазоне от -180 до 180°!');
             return;
+        }
+
+        // Есть ли у нас 2 точка и ограничение по радиусу полета
+        if(markers.length === 1 && selectedDrone.range !== null) {
+            const start = markers[0].getGeometry().getCoordinates();
+            const [startLng, startLat] = toLonLat(start);
+            const distance = getDistance(startLat, startLng, lat, lng); //Расстояние между точек
+
+            if (distance > selectedDrone.range) {
+                alert(`Дрон не может лететь дальше своего максимального ${selectedDrone.range} км!`);
+                return;
+            }
         }
 
         try {
@@ -120,6 +137,7 @@ const App = () => {
             map.addLayer(vectorLayer);
             setMarkers((prevMarkers) => [...prevMarkers, marker]);
 
+            //Проверка первой точки (Начало)
             if (markers.length === 0 && selectedDrone.range !== null) {
                 const radius = selectedDrone.range * 1000; 
                 const radiusFeature = new Feature({
@@ -147,6 +165,7 @@ const App = () => {
                 setRadiusLayer(radiusLayer);
             }
 
+            // Построение линии возможна ошибка
             if (markers.length === 1) {
                 const start = markers[0].getGeometry().getCoordinates();
                 const end = coordinates;
@@ -154,50 +173,9 @@ const App = () => {
                 const allPoints = [start, ...intermediatePoints, end].map((point) => toLonLat(point));
                 const elevations = await getElevations(allPoints);
 
-                intermediatePoints.forEach((point, index) => {
-                    const intermediateMarker = new Feature({
-                        geometry: new Point(point),
-                    });
-
-                    intermediateMarker.setStyle(
-                        new Style({
-                            image: new CircleStyle({
-                                radius: 5,
-                                fill: new Fill({ color: 'blue' }),
-                                stroke: new Stroke({ color: 'white', width: 2 }),
-                            }),
-                            text: new Text({
-                                text: `${elevations[index + 1].toFixed(2)} м`,
-                                offsetY: -15,
-                                fill: new Fill({ color: 'black' }),
-                                stroke: new Stroke({ color: 'white', width: 2 }),
-                            }),
-                        })
-                    );
-
-                    const intermediateSource = new VectorSource({
-                        features: [intermediateMarker],
-                    });
-
-                    const intermediateLayer = new VectorLayer({
-                        source: intermediateSource,
-                    });
-
-                    map.addLayer(intermediateLayer);
-                });
-
                 const line = new Feature({
-                    geometry: new LineString(allPoints),
+                    geometry: new LineString([start, end])
                 });
-
-                line.setStyle(
-                    new Style({
-                        stroke: new Stroke({
-                            color: '#3887be',
-                            width: 5,
-                        }),
-                    })
-                );
 
                 const lineSource = new VectorSource({
                     features: [line],
@@ -205,14 +183,46 @@ const App = () => {
 
                 const lineLayer = new VectorLayer({
                     source: lineSource,
+                    style: new Style({
+                        stroke: new Stroke({
+                            color: '#3887be',
+                            width: 5,
+                        }),
+                    }),
                 });
 
                 map.addLayer(lineLayer);
+                setLineLayer(lineLayer);
+
+                map.on('pointermove', (event) => {
+                    if (lineLayer) {
+                        const pixel = map.getEventPixel(event.originalEvent);
+                        const feature = map.forEachFeatureAtPixel(pixel, (feature) => feature);
+
+                        if (feature && feature.getGeometry().getType() === 'LineString') {
+                            const closestPoint = feature.getGeometry().getClosestPoint(event.coordinate);
+                            const [lng, lat] = toLonLat(closestPoint);
+
+                            const closestIndex = intermediatePoints.reduce((closest, point, index) => {
+                                const distance = getDistance(lat, lng, point[1], point[0]);
+                                return distance < closest.distance ? { index, distance } : closest;
+                            }, { index: 0, distance: Infinity }).index;
+
+                            if (elevations && elevations[closestIndex + 1]) {
+                                setHoveredElevation(elevations[closestIndex + 1]);
+                            } else {
+                                setHoveredElevation(null);
+                            }
+                        } else {
+                            setHoveredElevation(null);
+                        }
+                    }
+                });
             }
         } catch (error) {
-            console.error('Error fetching elevation data:', error);
+            console.error('Error fetching elevation data', error);
         }
-    };
+    };               
 
     useEffect(() => {
         if (map) {
@@ -232,8 +242,22 @@ const App = () => {
             setMarkers([]);
             setElevations([]);
             setRadiusLayer(null);
+            setLineLayer(null);
+            setHoveredElevation(null);
         }
     };
+
+    const getDistance = (lat1, lon1, lat2, lon2) => {
+        const R = 6371;
+        const dLat = (lat2 - lat1) * (Math.PI / 180);
+        const dLon = (lon2 - lon1) * (Math.PI / 180);
+
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    }
 
     return (
         <div>
@@ -251,6 +275,11 @@ const App = () => {
             <button onClick={handleReset} style={{ marginBottom: '10px' }}>
                 Сбросить
             </button>
+            {hoveredElevation != null && (
+                <div className='high' style={{ position: 'absolute', top: '10px', right: '10px', background:'white', padding: '10px', zIndex: 1000 }}>  
+                    Высота: {hoveredElevation.toFixed(2)} м
+                </div>
+            )}
             <div ref={mapRef} style={{ height: '500px', width: '100%' }} />
         </div>
     );

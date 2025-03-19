@@ -9,6 +9,7 @@ const port = process.env.port;
 app.use(cors());
 app.use(express.json());
 
+//Первая и на данный момент единственный рут для работы со сторонним API
 app.post('/elevation', async (req, res) => {
     const { points } = req.body; 
 
