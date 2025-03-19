@@ -34,8 +34,8 @@ const App = () => {
                 }),
             ],
             view: new View({
-                center: [4182518, 7508900], 
-                zoom: 10,
+                center: [0,0], //Открепил начальное положние от Москвы теперь нормально показывает не от привязанной начальной точки, а от моей ручной Начало и Конец
+                zoom: 0, //Чтобы в море не улетал
             }),
         });
 
@@ -67,7 +67,7 @@ const App = () => {
         for (const chunk of chunks) {
             try {
                 const response = await axios.post('http://localhost:5000/elevation', {
-                    points: chunk.map(([lng, lat]) => ({ latitude: lat, longitude: lng })),
+                    points: chunk.map(([lng, lat]) => ({ lat, lng })),
                 });
                 allElevations.push(...response.data.elevations);
             } catch (error) {
