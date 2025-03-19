@@ -87,8 +87,8 @@ const App = () => {
         marker.setStyle(
             new Style({
                 image: new Icon({
-                    src: '/radio-map/public/img/marker-icon.png',
-                    scale: 0.5,
+                    src: './radio-map/public/img/marker-icon.png',
+                    scale: 1,
                 }),
             })
         );
