@@ -34,7 +34,7 @@ const App = () => {
             target: mapRef.current,
             layers: [new TileLayer({ source: new OSM() })],
             view: new View({ 
-                center: fromLonLat([30, 45]), // Центр на Украине для теста
+                center: fromLonLat([0, 0]), 
                 zoom: 6 
             }),
         });
@@ -58,7 +58,6 @@ const App = () => {
         };
     };
 
-    // Упрощенный расчет расстояния (достаточно точный для наших целей)
     const getDistance = (lat1, lon1, lat2, lon2) => {
         const R = 6371;
         const dLat = (lat2 - lat1) * (Math.PI / 180);
