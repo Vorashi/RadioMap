@@ -21,8 +21,6 @@ const App = () => {
     const [map, setMap] = useState(null);
     const [selectedDrone, setSelectedDrone] = useState(drones[0]);
     const mapRef = useRef(null);
-    
-    // Используем ref для хранения слоев
     const layersRef = useRef({
         startMarker: null,
         endMarker: null,
@@ -35,7 +33,10 @@ const App = () => {
         const newMap = new Map({
             target: mapRef.current,
             layers: [new TileLayer({ source: new OSM() })],
-            view: new View({ center: [0, 0], zoom: 2 }),
+            view: new View({ 
+                center: fromLonLat([0, 0]),
+                zoom: 2 
+            }),
         });
         setMap(newMap);
         return () => newMap.setTarget(undefined);
@@ -45,14 +46,10 @@ const App = () => {
     const clearAllLayers = () => {
         if (!map) return;
         
-        // Удаляем все пользовательские слои
         Object.values(layersRef.current).forEach(layer => {
-            if (layer) {
-                map.removeLayer(layer);
-            }
+            if (layer) map.removeLayer(layer);
         });
         
-        // Сбрасываем ссылки
         layersRef.current = {
             startMarker: null,
             endMarker: null,
@@ -61,21 +58,7 @@ const App = () => {
         };
     };
 
-    // Расчет расстояния между точками
-    const getDistance = (lat1, lon1, lat2, lon2) => {
-        const R = 6371; // Радиус Земли в км
-        const dLat = (lat2 - lat1) * (Math.PI / 180);
-        const dLon = (lon2 - lon1) * (Math.PI / 180);
-        const a = 
-            Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.cos(lat1 * (Math.PI / 180)) * 
-            Math.cos(lat2 * (Math.PI / 180)) *
-            Math.sin(dLon/2) * Math.sin(dLon/2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        return R * c;
-    };
-
-    // Обработчик клика по карте
+    // Обработчик клика
     const handleMapClick = (event) => {
         if (!selectedDrone) {
             alert('Сначала выберите дрон!');
@@ -90,9 +73,8 @@ const App = () => {
             return;
         }
 
-        // Если нет стартовой точки
+        // Стартовая точка
         if (!layersRef.current.startMarker) {
-            // Создаем стартовую точку
             const marker = new Feature({
                 geometry: new Point(coordinates)
             });
@@ -101,18 +83,20 @@ const App = () => {
                 image: new Icon({
                     src: 'https://cdn-icons-png.flaticon.com/512/4764/4764087.png',
                     scale: 0.05,
-                    anchor: [0.5, 1]
+                    anchor: [0.5, 1],
                 })
             }));
 
-            const markerLayer = new VectorLayer({
-                source: new VectorSource({ features: [marker] })
+            const markerSource = new VectorSource({ features: [marker] });
+            const markerLayer = new VectorLayer({ 
+                source: markerSource,
+                zIndex: 2
             });
             
             map.addLayer(markerLayer);
             layersRef.current.startMarker = markerLayer;
 
-            // Создаем радиус для дронов с ограничением
+            // Радиус для дронов с ограничением
             if (selectedDrone.range !== null) {
                 const radiusFeature = new Feature({
                     geometry: new CircleGeometry(coordinates, selectedDrone.range * 1000)
@@ -128,26 +112,26 @@ const App = () => {
                         fill: new Fill({
                             color: 'rgba(0, 0, 255, 0.1)'
                         })
-                    })
+                    }),
+                    zIndex: 1
                 });
                 
                 map.addLayer(radiusLayer);
                 layersRef.current.radiusLayer = radiusLayer;
             }
         }
-        // Если есть стартовая, но нет конечной точки
+        // Конечная точка
         else if (!layersRef.current.endMarker) {
             const startCoords = layersRef.current.startMarker.getSource().getFeatures()[0].getGeometry().getCoordinates();
             const [startLng, startLat] = toLonLat(startCoords);
+            
             const distance = getDistance(startLat, startLng, lat, lng);
 
-            // Проверка радиуса для дронов с ограничением
             if (selectedDrone.range !== null && distance > selectedDrone.range) {
-                alert(`Конечная точка должна быть в пределах ${selectedDrone.range} км от старта!`);
+                alert(`Точка должна быть в пределах ${selectedDrone.range} км от старта!`);
                 return;
             }
 
-            // Создаем конечную точку
             const marker = new Feature({
                 geometry: new Point(coordinates)
             });
@@ -156,18 +140,19 @@ const App = () => {
                 image: new Icon({
                     src: 'https://cdn-icons-png.flaticon.com/512/103/103228.png',
                     scale: 0.05,
-                    anchor: [0.5, 1]
+                    anchor: [0.5, 1],
                 })
             }));
 
             const markerLayer = new VectorLayer({
-                source: new VectorSource({ features: [marker] })
+                source: new VectorSource({ features: [marker] }),
+                zIndex: 2
             });
             
             map.addLayer(markerLayer);
             layersRef.current.endMarker = markerLayer;
 
-            // Создаем линию между точками
+            // Линия между точками
             const line = new Feature({
                 geometry: new LineString([startCoords, coordinates])
             });
@@ -179,7 +164,8 @@ const App = () => {
                         color: '#3887be',
                         width: 3
                     })
-                })
+                }),
+                zIndex: 1
             });
             
             map.addLayer(lineLayer);
@@ -187,7 +173,20 @@ const App = () => {
         }
     };
 
-    // Подписка на события клика
+    // Функция расчета расстояния
+    const getDistance = (lat1, lon1, lat2, lon2) => {
+        const R = 6371;
+        const dLat = (lat2 - lat1) * (Math.PI / 180);
+        const dLon = (lon2 - lon1) * (Math.PI / 180);
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * (Math.PI / 180)) * 
+                  Math.cos(lat2 * (Math.PI / 180)) *
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+    };
+
+    // Подписка на события
     useEffect(() => {
         if (!map) return;
         
@@ -200,15 +199,16 @@ const App = () => {
     }, [map, selectedDrone]);
 
     return (
-        <div>
+        <div className="app-container">
             <h1>Маршрут дрона</h1>
-            <div style={{ marginBottom: '10px' }}>
+            <div className="controls">
                 <label>Выберите дрон: </label>
                 <select 
                     onChange={(e) => {
                         clearAllLayers();
                         setSelectedDrone(drones[e.target.value]);
                     }}
+                    className="drone-select"
                 >
                     {drones.map((drone, index) => (
                         <option key={index} value={index}>
@@ -216,9 +216,18 @@ const App = () => {
                         </option>
                     ))}
                 </select>
+                <button 
+                    onClick={clearAllLayers}
+                    className="reset-button"
+                >
+                    Сбросить
+                </button>
             </div>
-            <button onClick={clearAllLayers}>Сбросить</button>
-            <div ref={mapRef} style={{ height: '500px', width: '100%' }} />
+            <div 
+                ref={mapRef} 
+                className="map-container"
+                style={{ height: 'calc(100vh - 120px)' }}
+            />
         </div>
     );
 };
