@@ -34,8 +34,8 @@ const App = () => {
             target: mapRef.current,
             layers: [new TileLayer({ source: new OSM() })],
             view: new View({ 
-                center: fromLonLat([0, 0]),
-                zoom: 2 
+                center: fromLonLat([30, 45]), // Центр на Украине для теста
+                zoom: 6 
             }),
         });
         setMap(newMap);
@@ -56,6 +56,19 @@ const App = () => {
             radiusLayer: null,
             lineLayer: null
         };
+    };
+
+    // Упрощенный расчет расстояния (достаточно точный для наших целей)
+    const getDistance = (lat1, lon1, lat2, lon2) => {
+        const R = 6371;
+        const dLat = (lat2 - lat1) * (Math.PI / 180);
+        const dLon = (lon2 - lon1) * (Math.PI / 180);
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * (Math.PI / 180)) * 
+                  Math.cos(lat2 * (Math.PI / 180)) *
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
     };
 
     // Обработчик клика
@@ -87,9 +100,8 @@ const App = () => {
                 })
             }));
 
-            const markerSource = new VectorSource({ features: [marker] });
-            const markerLayer = new VectorLayer({ 
-                source: markerSource,
+            const markerLayer = new VectorLayer({
+                source: new VectorSource({ features: [marker] }),
                 zIndex: 2
             });
             
@@ -99,7 +111,10 @@ const App = () => {
             // Радиус для дронов с ограничением
             if (selectedDrone.range !== null) {
                 const radiusFeature = new Feature({
-                    geometry: new CircleGeometry(coordinates, selectedDrone.range * 1000)
+                    geometry: new CircleGeometry(
+                        coordinates,
+                        selectedDrone.range * 1000 // Радиус в метрах
+                    )
                 });
 
                 const radiusLayer = new VectorLayer({
@@ -122,7 +137,8 @@ const App = () => {
         }
         // Конечная точка
         else if (!layersRef.current.endMarker) {
-            const startCoords = layersRef.current.startMarker.getSource().getFeatures()[0].getGeometry().getCoordinates();
+            const startFeature = layersRef.current.startMarker.getSource().getFeatures()[0];
+            const startCoords = startFeature.getGeometry().getCoordinates();
             const [startLng, startLat] = toLonLat(startCoords);
             
             const distance = getDistance(startLat, startLng, lat, lng);
@@ -171,19 +187,6 @@ const App = () => {
             map.addLayer(lineLayer);
             layersRef.current.lineLayer = lineLayer;
         }
-    };
-
-    // Функция расчета расстояния
-    const getDistance = (lat1, lon1, lat2, lon2) => {
-        const R = 6371;
-        const dLat = (lat2 - lat1) * (Math.PI / 180);
-        const dLon = (lon2 - lon1) * (Math.PI / 180);
-        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                  Math.cos(lat1 * (Math.PI / 180)) * 
-                  Math.cos(lat2 * (Math.PI / 180)) *
-                  Math.sin(dLon/2) * Math.sin(dLon/2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        return R * c;
     };
 
     // Подписка на события
