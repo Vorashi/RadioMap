@@ -19,12 +19,16 @@ const drones = [
 
 const App = () => {
     const [map, setMap] = useState(null);
-    const [startMarker, setStartMarker] = useState(null);
-    const [endMarker, setEndMarker] = useState(null);
-    const [radiusLayer, setRadiusLayer] = useState(null);
-    const [lineLayer, setLineLayer] = useState(null);
     const [selectedDrone, setSelectedDrone] = useState(drones[0]);
     const mapRef = useRef(null);
+    
+    // Используем ref для хранения слоев
+    const layersRef = useRef({
+        startMarker: null,
+        endMarker: null,
+        radiusLayer: null,
+        lineLayer: null
+    });
 
     // Инициализация карты
     useEffect(() => {
@@ -37,133 +41,163 @@ const App = () => {
         return () => newMap.setTarget(undefined);
     }, []);
 
-    // Очистка слоёв
-    const clearLayers = () => {
+    // Очистка всех слоев
+    const clearAllLayers = () => {
         if (!map) return;
-        map.getLayers().forEach(layer => {
-            if (layer instanceof VectorLayer) {
+        
+        // Удаляем все пользовательские слои
+        Object.values(layersRef.current).forEach(layer => {
+            if (layer) {
                 map.removeLayer(layer);
             }
         });
-        setStartMarker(null);
-        setEndMarker(null);
-        setRadiusLayer(null);
-        setLineLayer(null);
+        
+        // Сбрасываем ссылки
+        layersRef.current = {
+            startMarker: null,
+            endMarker: null,
+            radiusLayer: null,
+            lineLayer: null
+        };
     };
 
-    // Расстояние между точками (в км)
+    // Расчет расстояния между точками
     const getDistance = (lat1, lon1, lat2, lon2) => {
-        const R = 6371;
+        const R = 6371; // Радиус Земли в км
         const dLat = (lat2 - lat1) * (Math.PI / 180);
         const dLon = (lon2 - lon1) * (Math.PI / 180);
-        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                  Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
-                  Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        const c = Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        const a = 
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * (Math.PI / 180)) * 
+            Math.cos(lat2 * (Math.PI / 180)) *
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         return R * c;
     };
 
-    // Обработчик клика
-    const handleMapClick = (coordinates) => {
+    // Обработчик клика по карте
+    const handleMapClick = (event) => {
         if (!selectedDrone) {
             alert('Сначала выберите дрон!');
             return;
         }
 
+        const coordinates = event.coordinate;
         const [lng, lat] = toLonLat(coordinates);
+
         if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
             alert('Координаты вне допустимого диапазона!');
             return;
         }
 
-        // Стартовая точка
-        if (!startMarker) {
-            const marker = new Feature({ geometry: new Point(coordinates) });
-            marker.setStyle(
-                new Style({
-                    image: new Icon({
-                        src: 'https://cdn-icons-png.flaticon.com/512/3473/3473785.png', // Иконка дрона
-                        scale: 0.2, // Уменьшенный размер
-                        anchor: [0.5, 1],
-                    }),
+        // Если нет стартовой точки
+        if (!layersRef.current.startMarker) {
+            // Создаем стартовую точку
+            const marker = new Feature({
+                geometry: new Point(coordinates)
+            });
+            
+            marker.setStyle(new Style({
+                image: new Icon({
+                    src: 'https://cdn-icons-png.flaticon.com/512/4764/4764087.png',
+                    scale: 0.05,
+                    anchor: [0.5, 1]
                 })
-            );
+            }));
 
-            const markerSource = new VectorSource({ features: [marker] });
-            const markerLayer = new VectorLayer({ source: markerSource });
+            const markerLayer = new VectorLayer({
+                source: new VectorSource({ features: [marker] })
+            });
+            
             map.addLayer(markerLayer);
-            setStartMarker(marker);
+            layersRef.current.startMarker = markerLayer;
 
-            // Радиус для дрона
+            // Создаем радиус для дронов с ограничением
             if (selectedDrone.range !== null) {
-                const radius = selectedDrone.range * 1000;
                 const radiusFeature = new Feature({
-                    geometry: new CircleGeometry(coordinates, radius),
+                    geometry: new CircleGeometry(coordinates, selectedDrone.range * 1000)
                 });
 
-                const radiusSource = new VectorSource({ features: [radiusFeature] });
                 const radiusLayer = new VectorLayer({
-                    source: radiusSource,
+                    source: new VectorSource({ features: [radiusFeature] }),
                     style: new Style({
-                        stroke: new Stroke({ color: 'rgba(0, 0, 255, 0.5)', width: 2 }),
-                        fill: new Fill({ color: 'rgba(0, 0, 255, 0.1)' }),
-                    }),
+                        stroke: new Stroke({
+                            color: 'rgba(0, 0, 255, 0.5)',
+                            width: 2
+                        }),
+                        fill: new Fill({
+                            color: 'rgba(0, 0, 255, 0.1)'
+                        })
+                    })
                 });
-
+                
                 map.addLayer(radiusLayer);
-                setRadiusLayer(radiusLayer);
+                layersRef.current.radiusLayer = radiusLayer;
             }
         }
-        // Конечная точка
-        else if (!endMarker) {
-            const startCoords = startMarker.getGeometry().getCoordinates();
+        // Если есть стартовая, но нет конечной точки
+        else if (!layersRef.current.endMarker) {
+            const startCoords = layersRef.current.startMarker.getSource().getFeatures()[0].getGeometry().getCoordinates();
             const [startLng, startLat] = toLonLat(startCoords);
             const distance = getDistance(startLat, startLng, lat, lng);
 
+            // Проверка радиуса для дронов с ограничением
             if (selectedDrone.range !== null && distance > selectedDrone.range) {
-                alert(`Конечная точка должна быть в пределах ${selectedDrone.range} км!`);
+                alert(`Конечная точка должна быть в пределах ${selectedDrone.range} км от старта!`);
                 return;
             }
 
-            const marker = new Feature({ geometry: new Point(coordinates) });
-            marker.setStyle(
-                new Style({
-                    image: new Icon({
-                        src: 'https://cdn-icons-png.flaticon.com/512/1828/1828884.png', // Иконка цели
-                        scale: 0.2, // Уменьшенный размер
-                        anchor: [0.5, 1],
-                    }),
+            // Создаем конечную точку
+            const marker = new Feature({
+                geometry: new Point(coordinates)
+            });
+            
+            marker.setStyle(new Style({
+                image: new Icon({
+                    src: 'https://cdn-icons-png.flaticon.com/512/103/103228.png',
+                    scale: 0.05,
+                    anchor: [0.5, 1]
                 })
-            );
+            }));
 
-            const markerSource = new VectorSource({ features: [marker] });
-            const markerLayer = new VectorLayer({ source: markerSource });
+            const markerLayer = new VectorLayer({
+                source: new VectorSource({ features: [marker] })
+            });
+            
             map.addLayer(markerLayer);
-            setEndMarker(marker);
+            layersRef.current.endMarker = markerLayer;
 
-            // Линия между точками
+            // Создаем линию между точками
             const line = new Feature({
-                geometry: new LineString([startCoords, coordinates]),
+                geometry: new LineString([startCoords, coordinates])
             });
-            const lineSource = new VectorSource({ features: [line] });
+
             const lineLayer = new VectorLayer({
-                source: lineSource,
+                source: new VectorSource({ features: [line] }),
                 style: new Style({
-                    stroke: new Stroke({ color: '#3887be', width: 3 }),
-                }),
+                    stroke: new Stroke({
+                        color: '#3887be',
+                        width: 3
+                    })
+                })
             });
+            
             map.addLayer(lineLayer);
-            setLineLayer(lineLayer);
+            layersRef.current.lineLayer = lineLayer;
         }
     };
 
-    // Подписка на клики
+    // Подписка на события клика
     useEffect(() => {
         if (!map) return;
-        const clickHandler = (event) => handleMapClick(event.coordinate);
+        
+        const clickHandler = (event) => handleMapClick(event);
         map.on('click', clickHandler);
-        return () => map.un('click', clickHandler);
-    }, [map, startMarker, endMarker, selectedDrone]);
+        
+        return () => {
+            map.un('click', clickHandler);
+        };
+    }, [map, selectedDrone]);
 
     return (
         <div>
@@ -171,9 +205,9 @@ const App = () => {
             <div style={{ marginBottom: '10px' }}>
                 <label>Выберите дрон: </label>
                 <select 
-                    onChange={(e) => { 
-                        clearLayers(); 
-                        setSelectedDrone(drones[e.target.value]); 
+                    onChange={(e) => {
+                        clearAllLayers();
+                        setSelectedDrone(drones[e.target.value]);
                     }}
                 >
                     {drones.map((drone, index) => (
@@ -183,7 +217,7 @@ const App = () => {
                     ))}
                 </select>
             </div>
-            <button onClick={clearLayers}>Сбросить</button>
+            <button onClick={clearAllLayers}>Сбросить</button>
             <div ref={mapRef} style={{ height: '500px', width: '100%' }} />
         </div>
     );
