@@ -4,7 +4,7 @@ const axios = require('axios');
 const fs = require('fs');
 const cors = require('cors');
 const app = express();
-const port = process.env.port;
+const port = process.env.PORT;
 // https://open-meteo.com/en/docs/elevation-api#latitude=57&longitude=39 - был использован для получения высот 
 app.use(cors());
 app.use(express.json());

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Map, View } from 'ol';
 import { Tile as TileLayer, Vector as VectorLayer } from 'ol/layer';
 import { OSM, Vector as VectorSource } from 'ol/source';
-import { Point, Circle as CircleGeometry, LineString } from 'ol/geom';
+import { Point, LineString } from 'ol/geom';
 import { Feature } from 'ol';
 import { Style, Icon, Stroke, Fill } from 'ol/style';
 import { fromLonLat, toLonLat } from 'ol/proj';
@@ -34,8 +34,8 @@ const App = () => {
             target: mapRef.current,
             layers: [new TileLayer({ source: new OSM() })],
             view: new View({ 
-                center: fromLonLat([0, 0]), 
-                zoom: 6 
+                center: fromLonLat([37.6, 55.7]), // Москва
+                zoom: 10 
             }),
         });
         setMap(newMap);
@@ -58,16 +58,99 @@ const App = () => {
         };
     };
 
+    // Расчет расстояния
     const getDistance = (lat1, lon1, lat2, lon2) => {
-        const R = 6371;
-        const dLat = (lat2 - lat1) * (Math.PI / 180);
-        const dLon = (lon2 - lon1) * (Math.PI / 180);
-        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                  Math.cos(lat1 * (Math.PI / 180)) * 
-                  Math.cos(lat2 * (Math.PI / 180)) *
-                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        const R = 6371; // Радиус Земли в км
+        const dLat = (lat2 - lat1) * Math.PI/180;
+        const dLon = (lon2 - lon1) * Math.PI/180;
+        const a = 
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI/180) * 
+            Math.cos(lat2 * Math.PI/180) *
+            Math.sin(dLon/2) * Math.sin(dLon/2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         return R * c;
+    };
+
+    // Проверка точки на попадание в радиус
+    const isPointInRadius = (center, point, radius) => {
+        if (radius === null) return true; // Особый дрон без ограничений
+        const [centerLon, centerLat] = toLonLat(center);
+        const [pointLon, pointLat] = toLonLat(point);
+        return getDistance(centerLat, centerLon, pointLat, pointLon) <= radius;
+    };
+
+    // Создание кругового полигона
+    const createRadiusPolygon = (center, radius) => {
+        const coordinates = [];
+        const [lon, lat] = toLonLat(center);
+        const R = 6371; // Радиус Земли в км
+        
+        for (let i = 0; i <= 360; i++) {
+            const angle = i * Math.PI / 180;
+            const lat2 = Math.asin(Math.sin(lat * Math.PI/180) * 
+                         Math.cos(radius/R) + 
+                         Math.cos(lat * Math.PI/180) * 
+                         Math.sin(radius/R) * 
+                         Math.cos(angle));
+            const lon2 = lon * Math.PI/180 + Math.atan2(
+                Math.sin(angle) * Math.sin(radius/R) * Math.cos(lat * Math.PI/180),
+                Math.cos(radius/R) - Math.sin(lat * Math.PI/180) * Math.sin(lat2)
+            );
+            coordinates.push(fromLonLat([lon2 * 180/Math.PI, lat2 * 180/Math.PI]));
+        }
+        
+        return coordinates;
+    };
+
+    // Обновление радиуса при смене дрона
+    const updateRadius = () => {
+        if (!map || !layersRef.current.startMarker) return;
+        
+        // Удаляем старый радиус
+        if (layersRef.current.radiusLayer) {
+            map.removeLayer(layersRef.current.radiusLayer);
+        }
+        
+        const startCoords = layersRef.current.startMarker.getSource().getFeatures()[0].getGeometry().getCoordinates();
+        
+        // Если у дрона есть радиус - создаем новый
+        if (selectedDrone.range !== null) {
+            const radiusCoords = createRadiusPolygon(startCoords, selectedDrone.range);
+            const radiusFeature = new Feature({
+                geometry: new LineString(radiusCoords)
+            });
+
+            const radiusLayer = new VectorLayer({
+                source: new VectorSource({ features: [radiusFeature] }),
+                style: new Style({
+                    stroke: new Stroke({
+                        color: 'rgba(0, 0, 255, 0.7)',
+                        width: 2
+                    }),
+                    fill: new Fill({
+                        color: 'rgba(0, 0, 255, 0.1)'
+                    })
+                }),
+                zIndex: 1
+            });
+            
+            map.addLayer(radiusLayer);
+            layersRef.current.radiusLayer = radiusLayer;
+        }
+        
+        // Проверяем конечную точку (если она есть)
+        if (layersRef.current.endMarker) {
+            const endCoords = layersRef.current.endMarker.getSource().getFeatures()[0].getGeometry().getCoordinates();
+            
+            if (selectedDrone.range !== null && !isPointInRadius(startCoords, endCoords, selectedDrone.range)) {
+                // Удаляем конечную точку и линию, так как она вне нового радиуса
+                map.removeLayer(layersRef.current.endMarker);
+                map.removeLayer(layersRef.current.lineLayer);
+                layersRef.current.endMarker = null;
+                layersRef.current.lineLayer = null;
+            }
+        }
     };
 
     // Обработчик клика
@@ -107,37 +190,14 @@ const App = () => {
             map.addLayer(markerLayer);
             layersRef.current.startMarker = markerLayer;
 
-            // Радиус для дронов с ограничением
+            // Создаем радиус если у дрона есть ограничение
             if (selectedDrone.range !== null) {
-                const radiusFeature = new Feature({
-                    geometry: new CircleGeometry(
-                        coordinates,
-                        selectedDrone.range * 1000 // Радиус в метрах
-                    )
-                });
-
-                const radiusLayer = new VectorLayer({
-                    source: new VectorSource({ features: [radiusFeature] }),
-                    style: new Style({
-                        stroke: new Stroke({
-                            color: 'rgba(0, 0, 255, 0.5)',
-                            width: 2
-                        }),
-                        fill: new Fill({
-                            color: 'rgba(0, 0, 255, 0.1)'
-                        })
-                    }),
-                    zIndex: 1
-                });
-                
-                map.addLayer(radiusLayer);
-                layersRef.current.radiusLayer = radiusLayer;
+                updateRadius();
             }
         }
         // Конечная точка
         else if (!layersRef.current.endMarker) {
-            const startFeature = layersRef.current.startMarker.getSource().getFeatures()[0];
-            const startCoords = startFeature.getGeometry().getCoordinates();
+            const startCoords = layersRef.current.startMarker.getSource().getFeatures()[0].getGeometry().getCoordinates();
             const [startLng, startLat] = toLonLat(startCoords);
             
             const distance = getDistance(startLat, startLng, lat, lng);
@@ -200,6 +260,19 @@ const App = () => {
         };
     }, [map, selectedDrone]);
 
+    // Обновляем радиус при смене дрона
+    useEffect(() => {
+        if (layersRef.current.startMarker) {
+            updateRadius();
+            
+            // Если есть конечная точка, но дрон теперь без ограничений - просто обновляем радиус
+            if (selectedDrone.range === null && layersRef.current.radiusLayer) {
+                map.removeLayer(layersRef.current.radiusLayer);
+                layersRef.current.radiusLayer = null;
+            }
+        }
+    }, [selectedDrone]);
+
     return (
         <div className="app-container">
             <h1>Маршрут дрона</h1>
@@ -207,7 +280,6 @@ const App = () => {
                 <label>Выберите дрон: </label>
                 <select 
                     onChange={(e) => {
-                        clearAllLayers();
                         setSelectedDrone(drones[e.target.value]);
                     }}
                     className="drone-select"
