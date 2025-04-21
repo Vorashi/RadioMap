@@ -10,27 +10,104 @@ import axios from 'axios';
 import 'ol/ol.css';
 import './App.css';
 
+const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
+
 const drones = [
-    { name: 'Дрон A', range: 10 },
-    { name: 'Дрон B', range: 50 },
-    { name: 'Дрон C', range: 100 },
-    { name: 'Дрон D', range: 1000 },
-    { name: 'Особый дрон', range: null },
+    { 
+        id: 1,
+        name: 'DJI Mavic 3', 
+        range: 10,
+        speed: 65, // км/ч
+        weight: 895, // г
+        description: 'Компактный дрон для аэрофотосъемки с камерой Hasselblad',
+        image: 'https://cdn-icons-png.flaticon.com/512/3447/3447567.png'
+    },
+    { 
+        id: 2,
+        name: 'DJI Matrice 300', 
+        range: 50,
+        speed: 82,
+        weight: 3700,
+        description: 'Профессиональный промышленный дрон для сложных задач',
+        image: 'https://cdn-icons-png.flaticon.com/512/3447/3447576.png'
+    },
+    { 
+        id: 3,
+        name: 'Autel EVO II', 
+        range: 100,
+        speed: 72,
+        weight: 1127,
+        description: 'Дрон с 8K камерой и продвинутыми функциями съемки',
+        image: 'https://cdn-icons-png.flaticon.com/512/3447/3447559.png'
+    },
+    { 
+        id: 4,
+        name: 'WingtraOne', 
+        range: 1000,
+        speed: 58,
+        weight: 3100,
+        description: 'Дрон-самолет для картографии и геодезии',
+        image: 'https://cdn-icons-png.flaticon.com/512/3447/3447585.png'
+    },
+    { 
+        id: 5,
+        name: 'Особый дрон', 
+        range: null,
+        speed: null,
+        weight: null,
+        description: 'Кастомная модель без ограничений по дальности',
+        image: 'https://cdn-icons-png.flaticon.com/512/3447/3447594.png'
+    },
 ];
+
+const DroneCard = ({ drone, isSelected, onSelect }) => {
+    return (
+        <div 
+            className={`drone-card ${isSelected ? 'selected' : ''}`}
+            onClick={() => onSelect(drone)}
+        >
+            <div className="drone-image">
+                <img src={drone.image} alt={drone.name} />
+            </div>
+            <div className="drone-info">
+                <h3>{drone.name}</h3>
+                <div className="drone-specs">
+                    {drone.range && <p><strong>Дальность:</strong> {drone.range} км</p>}
+                    {drone.speed && <p><strong>Скорость:</strong> {drone.speed} км/ч</p>}
+                    {drone.weight && <p><strong>Вес:</strong> {drone.weight} г</p>}
+                </div>
+                <p className="drone-description">{drone.description}</p>
+            </div>
+            <button className="select-button">
+                {isSelected ? 'Выбран' : 'Выбрать'}
+            </button>
+        </div>
+    );
+};
 
 const App = () => {
     const [map, setMap] = useState(null);
     const [selectedDrone, setSelectedDrone] = useState(drones[0]);
     const [isLoading, setIsLoading] = useState(false);
     const [hoveredPoint, setHoveredPoint] = useState(null);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [searchResults, setSearchResults] = useState([]);
+    const [selectedLocation, setSelectedLocation] = useState(null);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+		const [isMapFullscreen, setIsMapFullscreen] = useState(false);
+    const modalRef = useRef(null);
+    
     const mapRef = useRef(null);
+    const searchRef = useRef(null);
+    
     const layersRef = useRef({
         startMarker: null,
         endMarker: null,
         radiusLayer: null,
         lineLayer: null,
         elevationMarkers: null,
-        hoverMarker: null
+        hoverMarker: null,
+        searchMarker: null
     });
 
     // Инициализация карты
@@ -44,8 +121,114 @@ const App = () => {
             }),
         });
         setMap(newMap);
-        return () => newMap.setTarget(undefined);
+        
+        const handleClickOutside = (event) => {
+            if (searchRef.current && !searchRef.current.contains(event.target)) {
+                setShowSuggestions(false);
+            }
+        };
+        
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            newMap.setTarget(undefined);
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
     }, []);
+
+		 // Обработчик клика вне модального окна
+		useEffect(() => {
+		const handleClickOutside = (event) => {
+				if (modalRef.current && !modalRef.current.contains(event.target) && 
+						!event.target.closest('.fullscreen-button')) {
+						setIsMapFullscreen(false);
+				}
+		};
+		document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
+    // Поиск мест
+    const searchLocations = async (query) => {
+        if (!query || query.length < 3) {
+            setSearchResults([]);
+            return;
+        }
+        
+        try {
+            const response = await axios.get(NOMINATIM_URL, {
+                params: {
+                    q: query,
+                    format: 'json',
+                    addressdetails: 1,
+                    limit: 10,
+                    'accept-language': 'ru'
+                }
+            });
+            
+            setSearchResults(response.data);
+        } catch (error) {
+            console.error('Ошибка поиска:', error);
+            setSearchResults([]);
+        }
+    };
+
+    const handleSearchChange = (e) => {
+        const query = e.target.value;
+        setSearchQuery(query);
+        searchLocations(query);
+    };
+
+    const handleSelectLocation = (location) => {
+        setSelectedLocation(location);
+        setSearchQuery(location.display_name);
+        setShowSuggestions(false);
+        
+        const coords = fromLonLat([parseFloat(location.lon), parseFloat(location.lat)]);
+        
+        if (layersRef.current.searchMarker) {
+            map.removeLayer(layersRef.current.searchMarker);
+        }
+        
+        const marker = new Feature({
+            geometry: new Point(coords)
+        });
+        
+        marker.setStyle(new Style({
+            image: new Icon({
+                src: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
+                scale: 0.05,
+                anchor: [0.5, 1],
+            })
+        }));
+        
+        const markerLayer = new VectorLayer({
+            source: new VectorSource({ features: [marker] }),
+            zIndex: 5
+        });
+        
+        map.addLayer(markerLayer);
+        layersRef.current.searchMarker = markerLayer;
+        
+        map.getView().animate({
+            center: coords,
+            zoom: 14,
+            duration: 1000
+        });
+    };
+
+    const clearSearch = () => {
+        setSearchQuery("");
+        setSearchResults([]);
+        setSelectedLocation(null);
+        setShowSuggestions(false);
+        
+        if (layersRef.current.searchMarker) {
+            map.removeLayer(layersRef.current.searchMarker);
+            layersRef.current.searchMarker = null;
+        }
+    };
 
     // Очистка всех слоев
     const clearAllLayers = () => {
@@ -61,7 +244,8 @@ const App = () => {
             radiusLayer: null,
             lineLayer: null,
             elevationMarkers: null,
-            hoverMarker: null
+            hoverMarker: null,
+            searchMarker: null
         };
         setHoveredPoint(null);
     };
@@ -188,7 +372,6 @@ const App = () => {
         map.addLayer(markersLayer);
         layersRef.current.elevationMarkers = markersLayer;
         
-        // Настройка zoom на маршрут
         const lineCoords = [
             points[0].coords,
             points[points.length - 1].coords
@@ -390,7 +573,6 @@ const App = () => {
         const clickHandler = (event) => handleMapClick(event);
         map.on('click', clickHandler);
         
-        // Обработчик наведения на точки высот
         const pointerMoveHandler = (event) => {
             if (!layersRef.current.elevationMarkers) return;
             
@@ -430,38 +612,82 @@ const App = () => {
         }
     }, [selectedDrone]);
 
-    return (
-        <div className="app-container">
-            <h1>Маршрут дрона</h1>
-            <div className="controls">
-                <label>Выберите дрон: </label>
-                <select 
-                    onChange={(e) => {
-                        setSelectedDrone(drones[e.target.value]);
-                    }}
-                    className="drone-select"
-                >
-                    {drones.map((drone, index) => (
-                        <option key={index} value={index}>
-                            {drone.name} {drone.range ? `(${drone.range} км)` : ''}
-                        </option>
-                    ))}
-                </select>
-                <button 
-                    onClick={clearAllLayers}
-                    className="reset-button"
-                >
-                    Сбросить
-                </button>
-                {isLoading && <div className="loading">Загрузка данных о высотах...</div>}
-            </div>
-            <div 
-                ref={mapRef} 
-                className="map-container"
-                style={{ height: 'calc(100vh - 120px)' }}
-            />
-        </div>
-    );
-};
+		return (
+			<div className="app-container">
+					<h1>Маршрут дрона</h1>
+					
+					<div className="controls">
+							<div className="search-container" ref={searchRef}>
+									{/* Поисковая строка (без изменений) */}
+							</div>
+							
+							<button onClick={clearAllLayers} className="reset-button">
+									Сбросить маршрут
+							</button>
+							
+							{isLoading && <div className="loading">Загрузка данных о высотах...</div>}
+					</div>
+
+					<div className={`map-wrapper ${isMapFullscreen ? 'fullscreen' : ''}`}>
+							<div 
+									ref={mapRef} 
+									className="map-container"
+									style={{ height: isMapFullscreen ? '100vh' : '50vh' }}
+							/>
+							<button 
+									className="fullscreen-button"
+									onClick={() => setIsMapFullscreen(!isMapFullscreen)}
+							>
+									{isMapFullscreen ? (
+											<svg viewBox="0 0 24 24" width="24" height="24">
+													<path fill="currentColor" d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>
+											</svg>
+									) : (
+											<svg viewBox="0 0 24 24" width="24" height="24">
+													<path fill="currentColor" d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+											</svg>
+									)}
+							</button>
+					</div>
+
+					{isMapFullscreen && (
+							<div className="modal-overlay">
+									<div className="modal-content" ref={modalRef}>
+											<div className="modal-header">
+													<h2>Карта маршрута</h2>
+													<button 
+															className="close-button"
+															onClick={() => setIsMapFullscreen(false)}
+													>
+															&times;
+													</button>
+											</div>
+											<div className="modal-map-container">
+													<div 
+															ref={mapRef} 
+															className="map-container"
+															style={{ height: 'calc(100vh - 60px)' }}
+													/>
+											</div>
+									</div>
+							</div>
+					)}
+
+					<div className="drones-container">
+							<h2>Выберите дрон</h2>
+							<div className="drones-grid">
+									{drones.map(drone => (
+											<DroneCard
+													key={drone.id}
+													drone={drone}
+													isSelected={selectedDrone.id === drone.id}
+													onSelect={setSelectedDrone}
+											/>
+									))}
+							</div>
+					</div>
+			</div>
+		);
+	};
 
 export default App;
