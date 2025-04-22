@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect, useRef } from 'react';
 import { Map, View } from 'ol';
 import { Tile as TileLayer, Vector as VectorLayer } from 'ol/layer';
@@ -20,7 +22,7 @@ const drones = [
         speed: 65, // км/ч
         weight: 895, // г
         description: 'Компактный дрон для аэрофотосъемки с камерой Hasselblad',
-        image: 'https://cdn-icons-png.flaticon.com/512/3447/3447567.png'
+        image: 'https://mydrone.ru/images/ab__webp/thumbnails/550/450/detailed/121/Квадрокоптер_DJI_Mavic_3_Classic__без_пульта__jpg.webp'
     },
     { 
         id: 2,
@@ -29,7 +31,7 @@ const drones = [
         speed: 82,
         weight: 3700,
         description: 'Профессиональный промышленный дрон для сложных задач',
-        image: 'https://cdn-icons-png.flaticon.com/512/3447/3447576.png'
+        image: 'https://m-files.cdn1.cc/lpfile/b/b/e/bbe19b5a1c7370bc972efa77de5a0122/-/resize/1920/f.jpg?11899100'
     },
     { 
         id: 3,
@@ -38,7 +40,7 @@ const drones = [
         speed: 72,
         weight: 1127,
         description: 'Дрон с 8K камерой и продвинутыми функциями съемки',
-        image: 'https://cdn-icons-png.flaticon.com/512/3447/3447559.png'
+        image: 'https://static.insales-cdn.com/r/Z3PCB95Z-tI/rs:fit:550:550:1/plain/images/products/1/4950/932778838/kvadrokopter-autel-robotics-evo-ii-dual-640t-rtk-rugged-bundle-v2.jpg@webp'
     },
     { 
         id: 4,
@@ -47,7 +49,7 @@ const drones = [
         speed: 58,
         weight: 3100,
         description: 'Дрон-самолет для картографии и геодезии',
-        image: 'https://cdn-icons-png.flaticon.com/512/3447/3447585.png'
+        image: 'https://i.pinimg.com/originals/b3/65/e7/b365e7f94b29bb230e955de85631520d.png'
     },
     { 
         id: 5,
@@ -90,6 +92,7 @@ const App = () => {
     const [selectedDrone, setSelectedDrone] = useState(drones[0]);
     const [isLoading, setIsLoading] = useState(false);
     const [hoveredPoint, setHoveredPoint] = useState(null);
+    // eslint-disable-next-line no-unused-vars
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState([]);
     const [selectedLocation, setSelectedLocation] = useState(null);
@@ -494,7 +497,7 @@ const App = () => {
             
             marker.setStyle(new Style({
                 image: new Icon({
-                    src: 'https://cdn-icons-png.flaticon.com/512/4764/4764087.png',
+                    src: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
                     scale: 0.05,
                     anchor: [0.5, 1],
                 })
@@ -529,7 +532,7 @@ const App = () => {
             
             marker.setStyle(new Style({
                 image: new Icon({
-                    src: 'https://cdn-icons-png.flaticon.com/512/103/103228.png',
+                    src: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
                     scale: 0.05,
                     anchor: [0.5, 1],
                 })
@@ -618,7 +621,7 @@ const App = () => {
 					
 					<div className="controls">
 							<div className="search-container" ref={searchRef}>
-									{/* Поисковая строка (без изменений) */}
+								{/* Поисковая строка*/}
 							</div>
 							
 							<button onClick={clearAllLayers} className="reset-button">
