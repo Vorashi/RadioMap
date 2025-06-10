@@ -1,0 +1,33 @@
+.drones-container {
+  padding: 15px 0;
+}
+
+.drones-container h2 {
+  margin: 0 0 15px 0;
+  font-size: 1.5rem;
+  color: #333;
+}
+
+.drones-grid {
+  display: grid;
+  gap: 15px;
+  padding: 10px 0;
+}
+
+@media (max-width: 768px) {
+  .drones-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .drones-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1025px) {
+  .drones-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

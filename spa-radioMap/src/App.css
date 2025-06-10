@@ -1,0 +1,24 @@
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+  padding: 15px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.app-container h1 {
+  color: #333;
+  margin-top: 0;
+}
+
+@media (max-width: 768px) {
+  .controls {
+    flex-direction: column;
+  }
+  
+  .search-container {
+    width: 100%;
+  }
+}
