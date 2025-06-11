@@ -43,6 +43,34 @@ body.fullscreen-map-active .drones-list-container {
     display: none;
 }
 
+.connection-legend span {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+  border-radius: 50%;
+}
+
+.good-connection {
+  background-color: #4CAF50;
+}
+
+.weak-connection {
+  background-color: #FFC107;
+}
+
+.no-connection {
+  background-color: #F44336;
+}
+
+.elevation-profile {
+  margin: 20px;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
 @media (max-width: 768px) {
   .controls {
     flex-direction: column;
@@ -51,4 +79,42 @@ body.fullscreen-map-active .drones-list-container {
   .search-container {
     width: 100%;
   }
+}
+
+.app-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.app-container h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333;
+}
+
+.controls {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.analysis-container {
+    display: flex;
+    flex-direction: column;
+    margin-top: 20px;
+    gap: 20px;
+}
+
+@media (min-width: 768px) {
+    .analysis-container {
+        flex-direction: row;
+    }
+    
+    .radio-legend {
+        width: 300px;
+    }
 }

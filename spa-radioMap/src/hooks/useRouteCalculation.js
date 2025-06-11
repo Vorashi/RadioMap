@@ -1,4 +1,4 @@
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useState } from 'react';
 import { Feature } from 'ol';
 import { Point, LineString } from 'ol/geom';
 import { Vector as VectorSource } from 'ol/source';
@@ -7,6 +7,7 @@ import { Style, Icon, Stroke, Fill, Text } from 'ol/style';
 import { toLonLat } from 'ol/proj';
 import { createRadiusPolygon, getDistance } from '../utils/geoUtils';
 import { fetchElevationData } from '../utils/api';
+import { useRadioAnalysis } from './useRadioAnalysis';
 
 export const useRouteCalculation = (map, selectedDrone, setIsLoading, setNotification) => {
     const layersRef = useRef({
@@ -17,6 +18,9 @@ export const useRouteCalculation = (map, selectedDrone, setIsLoading, setNotific
         elevationMarkers: null,
         hoverMarker: null
     });
+
+    const [radioAnalysis, setRadioAnalysis] = useState(null);
+    const { analyzeRoute } = useRadioAnalysis();
 
     const clearAllLayers = useCallback(() => {
         if (!map) return;
@@ -33,6 +37,7 @@ export const useRouteCalculation = (map, selectedDrone, setIsLoading, setNotific
             elevationMarkers: null,
             hoverMarker: null
         };
+        setRadioAnalysis(null);
     }, [map]);
 
     const updateRadius = useCallback(() => {
@@ -134,136 +139,178 @@ export const useRouteCalculation = (map, selectedDrone, setIsLoading, setNotific
         layersRef.current.hoverMarker = markerLayer;
     }, [map]);
 
+    const styleRouteSegments = useCallback((analysis) => {
+        if (!map || !analysis || !layersRef.current.lineLayer) return;
+        
+        const source = layersRef.current.lineLayer.getSource();
+        const line = source.getFeatures()[0];
+        
+        const styles = analysis.map(segment => {
+            let color;
+            if (segment.isCritical) {
+                color = 'rgba(255, 0, 0, 0.7)';
+            } else if (!segment.hasLOS) {
+                color = 'rgba(255, 165, 0, 0.7)';
+            } else {
+                color = 'rgba(0, 255, 0, 0.7)';
+            }
+            
+            return new Style({
+                stroke: new Stroke({
+                    color,
+                    width: 3,
+                    lineDash: segment.isCritical ? [5, 5] : undefined
+                })
+            });
+        });
+        
+        line.setStyle(styles);
+    }, [map]);
+
     const handleMapClick = useCallback(async (event) => {
         if (!selectedDrone) {
-					setNotification({
-						isOpen: true,
-						message: 'Сначала выберите дрон!',
-						type: 'warning'
-					});
-        	return;
-        }
-
-    const coordinates = event.coordinate;
-    const [lng, lat] = toLonLat(coordinates);
-
-    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-			setNotification({
-            isOpen: true,
-            message: 'Координаты вне допустимого диапазона!',
-            type: 'error'
-      });
-      return;
-    }
-
-    if (!layersRef.current.startMarker) {
-        // Создание стартовой точки (как было раньше)
-        const marker = new Feature({
-            geometry: new Point(coordinates)
-        });
-        
-        marker.setStyle(new Style({
-            image: new Icon({
-                src: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
-                scale: 0.05,
-                anchor: [0.5, 1],
-            })
-        }));
-
-        const markerLayer = new VectorLayer({
-            source: new VectorSource({ features: [marker] }),
-            zIndex: 2
-        });
-        
-        map.addLayer(markerLayer);
-        layersRef.current.startMarker = markerLayer;
-
-        if (selectedDrone.range !== null) {
-            updateRadius();
-        }
-
-        // Приближаемся к стартовой точке
-        map.getView().animate({
-            center: coordinates,
-            zoom: 14,
-            duration: 1000
-        });
-
-    } else if (!layersRef.current.endMarker) {
-        const startCoords = layersRef.current.startMarker.getSource().getFeatures()[0].getGeometry().getCoordinates();
-        const [startLng, startLat] = toLonLat(startCoords);
-        
-        const distance = getDistance(startLat, startLng, lat, lng);
-
-        if (selectedDrone.range !== null && distance > selectedDrone.range) {
             setNotification({
                 isOpen: true,
-                message: `Точка должна быть в пределах ${selectedDrone.range} км от старта!`,
+                message: 'Сначала выберите дрон!',
                 type: 'warning'
             });
             return;
         }
 
-        // Создание конечной точки (как было раньше)
-        const marker = new Feature({
-            geometry: new Point(coordinates)
-        });
-        
-        marker.setStyle(new Style({
-            image: new Icon({
-                src: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
-                scale: 0.05,
-                anchor: [0.5, 1],
-            })
-        }));
+        const coordinates = event.coordinate;
+        const [lng, lat] = toLonLat(coordinates);
 
-        const markerLayer = new VectorLayer({
-            source: new VectorSource({ features: [marker] }),
-            zIndex: 2
-        });
-        
-        map.addLayer(markerLayer);
-        layersRef.current.endMarker = markerLayer;
+        if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+            setNotification({
+                isOpen: true,
+                message: 'Координаты вне допустимого диапазона!',
+                type: 'error'
+            });
+            return;
+        }
 
-        // Создание линии маршрута
-        const line = new Feature({
-            geometry: new LineString([startCoords, coordinates])
-        });
-
-        const lineLayer = new VectorLayer({
-            source: new VectorSource({ features: [line] }),
-            style: new Style({
-                stroke: new Stroke({
-                    color: '#3887be',
-                    width: 3
+        if (!layersRef.current.startMarker) {
+            const marker = new Feature({
+                geometry: new Point(coordinates)
+            });
+            
+            marker.setStyle(new Style({
+                image: new Icon({
+                    src: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
+                    scale: 0.05,
+                    anchor: [0.5, 1],
                 })
-            }),
-            zIndex: 1
-        });
-        
-        map.addLayer(lineLayer);
-        layersRef.current.lineLayer = lineLayer;
+            }));
 
-        // Приближаемся к маршруту (новый код)
-        const extent = line.getGeometry().getExtent();
-        map.getView().fit(extent, {
-            padding: [50, 50, 50, 50], // Отступы от краев
-            duration: 1000,
-            maxZoom: 14 // Максимальное приближение
-        });
+            const markerLayer = new VectorLayer({
+                source: new VectorSource({ features: [marker] }),
+                zIndex: 2
+            });
+            
+            map.addLayer(markerLayer);
+            layersRef.current.startMarker = markerLayer;
 
-        setIsLoading(true);
-        const elevationPoints = await fetchElevationData(startCoords, coordinates);
-        setIsLoading(false);
-        showElevationPoints(elevationPoints);
-    }
-}, [map, selectedDrone, updateRadius, showElevationPoints, setIsLoading, setNotification]);
+            if (selectedDrone.range !== null) {
+                updateRadius();
+            }
+
+            map.getView().animate({
+                center: coordinates,
+                zoom: 14,
+                duration: 1000
+            });
+
+        } else if (!layersRef.current.endMarker) {
+            const startCoords = layersRef.current.startMarker.getSource().getFeatures()[0].getGeometry().getCoordinates();
+            const [startLng, startLat] = toLonLat(startCoords);
+            
+            const distance = getDistance(startLat, startLng, lat, lng);
+
+            if (selectedDrone.range !== null && distance > selectedDrone.range) {
+                setNotification({
+                    isOpen: true,
+                    message: `Точка должна быть в пределах ${selectedDrone.range} км от старта!`,
+                    type: 'warning'
+                });
+                return;
+            }
+
+            const marker = new Feature({
+                geometry: new Point(coordinates)
+            });
+            
+            marker.setStyle(new Style({
+                image: new Icon({
+                    src: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
+                    scale: 0.05,
+                    anchor: [0.5, 1],
+                })
+            }));
+
+            const markerLayer = new VectorLayer({
+                source: new VectorSource({ features: [marker] }),
+                zIndex: 2
+            });
+            
+            map.addLayer(markerLayer);
+            layersRef.current.endMarker = markerLayer;
+
+            const line = new Feature({
+                geometry: new LineString([startCoords, coordinates])
+            });
+
+            const lineLayer = new VectorLayer({
+                source: new VectorSource({ features: [line] }),
+                zIndex: 1
+            });
+            
+            map.addLayer(lineLayer);
+            layersRef.current.lineLayer = lineLayer;
+
+            const extent = line.getGeometry().getExtent();
+            map.getView().fit(extent, {
+                padding: [50, 50, 50, 50],
+                duration: 1000,
+                maxZoom: 14
+            });
+
+            setIsLoading(true);
+            try {
+                const elevationPoints = await fetchElevationData(startCoords, coordinates);
+                showElevationPoints(elevationPoints);
+                
+                const radioAnalysisResults = await analyzeRoute(
+                    elevationPoints.map(p => ({
+                        lat: toLonLat(p.coords)[1],
+                        lng: toLonLat(p.coords)[0],
+                        elevation: p.elevation
+                    })),
+                    selectedDrone.range,
+                    selectedDrone.frequency
+                );
+                
+                setRadioAnalysis(radioAnalysisResults);
+                styleRouteSegments(radioAnalysisResults);
+            } catch (error) {
+                console.error('Error calculating route:', error);
+                setNotification({
+                    isOpen: true,
+                    message: 'Ошибка при расчете маршрута',
+                    type: 'error'
+                });
+            } finally {
+                setIsLoading(false);
+            }
+        }
+    }, [map, selectedDrone, updateRadius, showElevationPoints, setIsLoading, setNotification, analyzeRoute, styleRouteSegments]);
 
     return {
         layersRef,
+        radioAnalysis,
         clearAllLayers,
         handleMapClick,
         showHoverMarker,
-        updateRadius
+        updateRadius,
+        styleRouteSegments
     };
 };

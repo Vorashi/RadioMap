@@ -41,3 +41,60 @@ export const createRadiusPolygon = (center, radius) => {
     
     return coordinates;
 };
+
+export const calculateRadioConnection = (startCoords, endCoords, elevationPoints, drone) => {
+    if (!elevationPoints || elevationPoints.length < 2) {
+        return {
+            quality: 'none',
+            fresnelZone: () => 0,
+            totalDistance: 0,
+            maxDistance: 0,
+            obstacles: []
+        };
+    }
+
+    const [startLon, startLat] = toLonLat(startCoords);
+    const [endLon, endLat] = toLonLat(endCoords);
+    
+    const totalDistance = getDistance(startLat, startLon, endLat, endLon);
+    const maxDistance = drone.range || 50;
+    
+    const frequency = 2.4;
+    const fresnelZone = (distance) => 8.656 * Math.sqrt(distance / frequency);
+    
+    const startElevation = elevationPoints[0].elevation;
+    const endElevation = elevationPoints[elevationPoints.length - 1].elevation;
+    
+    let lineOfSight = true;
+    const obstacles = [];
+    
+    elevationPoints.forEach((point, i) => {
+        if (i === 0 || i === elevationPoints.length - 1) return;
+        
+        const segmentDistance = getDistance(startLat, startLon, point.lat, point.lng);
+        const expectedElevation = startElevation + 
+            (endElevation - startElevation) * (segmentDistance / totalDistance);
+        const clearance = fresnelZone(segmentDistance);
+        const elevationDiff = point.elevation - expectedElevation;
+        
+        if (elevationDiff > clearance) {
+            lineOfSight = false;
+            obstacles.push({
+                position: segmentDistance,
+                elevation: point.elevation,
+                expected: expectedElevation,
+                clearance
+            });
+        }
+    });
+    
+    return {
+        quality: lineOfSight ? 'good' : totalDistance > maxDistance ? 'none' : 'weak',
+        fresnelZone,
+        totalDistance,
+        maxDistance,
+        obstacles,
+        startElevation,
+        endElevation
+    };
+};

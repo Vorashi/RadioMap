@@ -1,0 +1,59 @@
+.radio-legend {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    max-width: 400px;
+}
+
+.radio-legend h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #333;
+    font-size: 16px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.legend-color.green {
+    background-color: rgba(0, 255, 0, 0.7);
+}
+
+.legend-color.orange {
+    background-color: rgba(255, 165, 0, 0.7);
+}
+
+.legend-color.red {
+    background-color: rgba(255, 0, 0, 0.7);
+}
+
+.legend-line {
+    width: 20px;
+    height: 3px;
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+.legend-line.dashed {
+    background: repeating-linear-gradient(
+        to right,
+        #333,
+        #333 3px,
+        transparent 3px,
+        transparent 6px
+    );
+}

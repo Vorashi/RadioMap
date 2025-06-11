@@ -7,6 +7,8 @@ import SearchLocation from './components/SearchLocation/SearchLocation';
 import FullscreenMap from './components/FullscreenMap/FullscreenMap';
 import DronesList from './components/DronesList/DronesList';
 import NotificationModal from './components/NotificationModal/NotificationModal';
+import RadioAnalysisLegend from './components/RadioAnalysisLegend/RadioAnalysisLegend';
+import ElevationProfile from './components/ElevationProfile/ElevationProfile';
 import './App.css';
 
 const App = () => {
@@ -14,15 +16,17 @@ const App = () => {
     const { selectedDrone, setSelectedDrone } = useDroneSelection();
     const [isLoading, setIsLoading] = useState(false);
     const [isMapFullscreen, setIsMapFullscreen] = useState(false);
-		const [notification, setNotification] = useState({
-			isOpen: false,
-			message: '',
-			type: 'info'
-		});
+    const [notification, setNotification] = useState({
+        isOpen: false,
+        message: '',
+        type: 'info'
+    });
+    const [elevationData] = useState([]);
     
-    const locationSearch = useLocationSearch(map);
+    const locationSearch = useLocationSearch(map, setNotification);
     const routeCalculation = useRouteCalculation(map, selectedDrone, setIsLoading, setNotification);
-		const closeNotification = () => {
+
+    const closeNotification = () => {
         setNotification(prev => ({ ...prev, isOpen: false }));
     };
 
@@ -78,23 +82,32 @@ const App = () => {
                 <SearchLocation {...locationSearch} /> 
             </div>
 
-              <FullscreenMap 
+            <FullscreenMap 
                 isFullscreen={isMapFullscreen}
                 toggleFullscreen={() => setIsMapFullscreen(prev => !prev)}
                 mapRef={mapRef}
                 map={map}
                 onReset={routeCalculation.clearAllLayers}
                 isLoading={isLoading}
-            	/>
+            />
+
+            <div className="analysis-container">
+                <RadioAnalysisLegend />
+                <ElevationProfile 
+                    elevationData={elevationData} 
+                    radioAnalysis={routeCalculation.radioAnalysis} 
+                />
+            </div>
 
             <DronesList 
                 selectedDrone={selectedDrone} 
                 onSelectDrone={setSelectedDrone} 
             />
 
-						<NotificationModal 
+            <NotificationModal 
                 isOpen={notification.isOpen}
                 message={notification.message}
+                type={notification.type}
                 onClose={closeNotification}
             />
         </div>
