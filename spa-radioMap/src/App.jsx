@@ -7,6 +7,7 @@ import MapControls from './components/MapControls/MapControls';
 import SearchLocation from './components/SearchLocation/SearchLocation';
 import FullscreenMap from './components/FullscreenMap/FullscreenMap';
 import DronesList from './components/DronesList/DronesList';
+import NotificationModal from './components/NotificationModal/NotificationModal';
 import './App.css';
 
 const App = () => {
@@ -14,9 +15,17 @@ const App = () => {
     const { selectedDrone, setSelectedDrone } = useDroneSelection();
     const [isLoading, setIsLoading] = useState(false);
     const [isMapFullscreen, setIsMapFullscreen] = useState(false);
+		const [notification, setNotification] = useState({
+			isOpen: false,
+			message: '',
+			type: 'info'
+		});
     
     const locationSearch = useLocationSearch(map);
-    const routeCalculation = useRouteCalculation(map, selectedDrone, setIsLoading);
+    const routeCalculation = useRouteCalculation(map, selectedDrone, setIsLoading, setNotification);
+		const closeNotification = () => {
+        setNotification(prev => ({ ...prev, isOpen: false }));
+    };
 
     useEffect(() => {
         if (!map) return;
@@ -75,14 +84,22 @@ const App = () => {
             </div>
 
               <FullscreenMap 
-                isFullscreen={isMapFullscreen} 
-                toggleFullscreen={() => setIsMapFullscreen(!isMapFullscreen)}
-                mapRef={mapRef}
-            	/>
+								isFullscreen={isMapFullscreen}
+								toggleFullscreen={() => {
+										setIsMapFullscreen(prev => !prev);
+								}}
+								mapRef={mapRef}
+							/>
 
             <DronesList 
                 selectedDrone={selectedDrone} 
                 onSelectDrone={setSelectedDrone} 
+            />
+
+						<NotificationModal 
+                isOpen={notification.isOpen}
+                message={notification.message}
+                onClose={closeNotification}
             />
         </div>
     );

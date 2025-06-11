@@ -13,6 +13,10 @@
   margin-top: 0;
 }
 
+body.fullscreen-map-active {
+    overflow: hidden !important;
+}
+
 @media (max-width: 768px) {
   .controls {
     flex-direction: column;

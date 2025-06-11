@@ -8,7 +8,7 @@ import { toLonLat } from 'ol/proj';
 import { createRadiusPolygon, getDistance } from '../utils/geoUtils';
 import { fetchElevationData } from '../utils/api';
 
-export const useRouteCalculation = (map, selectedDrone, setIsLoading) => {
+export const useRouteCalculation = (map, selectedDrone, setIsLoading, setNotification) => {
     const layersRef = useRef({
         startMarker: null,
         endMarker: null,
@@ -135,17 +135,25 @@ export const useRouteCalculation = (map, selectedDrone, setIsLoading) => {
     }, [map]);
 
     const handleMapClick = useCallback(async (event) => {
-    if (!selectedDrone) {
-        alert('Сначала выберите дрон!');
-        return;
-    }
+        if (!selectedDrone) {
+					setNotification({
+						isOpen: true,
+						message: 'Сначала выберите дрон!',
+						type: 'warning'
+					});
+        	return;
+        }
 
     const coordinates = event.coordinate;
     const [lng, lat] = toLonLat(coordinates);
 
     if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-        alert('Координаты вне допустимого диапазона!');
-        return;
+			setNotification({
+            isOpen: true,
+            message: 'Координаты вне допустимого диапазона!',
+            type: 'error'
+      });
+      return;
     }
 
     if (!layersRef.current.startMarker) {
@@ -188,7 +196,11 @@ export const useRouteCalculation = (map, selectedDrone, setIsLoading) => {
         const distance = getDistance(startLat, startLng, lat, lng);
 
         if (selectedDrone.range !== null && distance > selectedDrone.range) {
-            alert(`Точка должна быть в пределах ${selectedDrone.range} км от старта!`);
+            setNotification({
+                isOpen: true,
+                message: `Точка должна быть в пределах ${selectedDrone.range} км от старта!`,
+                type: 'warning'
+            });
             return;
         }
 
@@ -245,7 +257,7 @@ export const useRouteCalculation = (map, selectedDrone, setIsLoading) => {
         setIsLoading(false);
         showElevationPoints(elevationPoints);
     }
-}, [map, selectedDrone, updateRadius, showElevationPoints, setIsLoading]);
+}, [map, selectedDrone, updateRadius, showElevationPoints, setIsLoading, setNotification]);
 
     return {
         layersRef,

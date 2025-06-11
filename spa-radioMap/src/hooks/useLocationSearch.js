@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { searchLocations } from '../utils/api';
 import { fromLonLat } from 'ol/proj';
 
-export const useLocationSearch = (map) => {
+export const useLocationSearch = (map, setNotification) => {
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState([]);
     const [selectedLocation, setSelectedLocation] = useState(null);
@@ -21,11 +21,23 @@ export const useLocationSearch = (map) => {
         try {
             const results = await searchLocations(query);
             setSearchResults(results);
+						if (results.length === 0) {
+							setNotification({
+									isOpen: true,
+									message: 'Ничего не найдено по вашему запросу',
+									type: 'info'
+							});
+        		}
         } catch (error) {
             console.error('Ошибка поиска:', error);
             setSearchResults([]);
+						setNotification({
+							isOpen: true,
+							message: 'Произошла ошибка при поиске местоположений',
+							type: 'error'
+        		});
         }
-    }, []);
+    }, [setNotification]);
 
     const handleSelectLocation = useCallback((location) => {
         setSelectedLocation(location);
