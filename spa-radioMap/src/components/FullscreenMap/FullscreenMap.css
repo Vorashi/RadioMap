@@ -2,72 +2,143 @@
     position: relative;
     width: 100%;
     height: 50vh;
+    transition: height 0.3s ease;
     margin-bottom: 20px;
     border: 1px solid #ddd;
-    border-radius: 8px;
+    border-radius: 4px;
     overflow: hidden;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.map-wrapper.fullscreen {
+    height: 100vh;
+    border: none;
+    border-radius: 0;
+    margin-bottom: 0;
 }
 
 .map-container {
     width: 100%;
     height: 100%;
+    position: relative;
 }
 
-/* Общие стили для кнопок управления */
-.map-control-button {
+.map-controls-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     position: absolute;
-    top: 12px;
-    right: 12px;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+}
+
+.map-controls-group.fullscreen-controls {
+    position: fixed;
+    top: 20px;
+    right: 20px;
     z-index: 1001;
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid #ddd;
-    border-radius: 6px;
+}
+
+.map-controls-container {
+    display: flex;
+    gap: 8px;
+}
+
+.map-control-button {
     width: 36px;
     height: 36px;
-    cursor: pointer;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
     transition: all 0.2s ease;
-    font-family: Arial, sans-serif;
 }
 
 .map-control-button:hover {
-    background: white;
-    transform: scale(1.05);
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+    background-color: #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    transform: translateY(-1px);
 }
 
-/* Стиль для кнопки выхода */
-.exit-fullscreen-button {
-    background: rgba(255, 255, 255, 0.95);
-    color: #333;
-    border-color: #ccc;
-}
-
-.exit-fullscreen-button:hover {
-    background: #fff;
-    color: #000;
-}
-
-/* Стиль для кнопки входа */
-.enter-fullscreen-button {
-    background: rgba(255, 255, 255, 0.95);
-    color: #333;
-}
-
-.enter-fullscreen-button:hover {
-    background: #f8f8f8;
-}
-
-.button-icon {
-    font-size: 20px;
+.map-control-button .button-icon {
+    font-size: 16px;
     font-weight: bold;
-    line-height: 1;
+    color: #333;
 }
 
-body.fullscreen-map-active {
-    overflow: hidden !important;
+.map-actions-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.reset-button {
+    padding: 6px 12px;
+    background-color: #3887be;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 14px;
+}
+
+.reset-button:hover {
+    background-color: #2c6b94;
+}
+
+.reset-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+.loading-indicator {
+    color: #3887be;
+    font-size: 14px;
+}
+
+.fullscreen-toggle-button {
+    width: 36px;
+    height: 36px;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.fullscreen-toggle-button:hover {
+    background-color: #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    transform: translateY(-1px);
+}
+
+.fullscreen-toggle-button .button-icon {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+}
+
+.fullscreen-toggle-button.exit-fullscreen {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1001;
 }

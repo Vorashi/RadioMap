@@ -3,7 +3,6 @@ import { useMap } from './hooks/useMap';
 import { useDroneSelection } from './hooks/useDroneSelection';
 import { useLocationSearch } from './hooks/useLocationSearch';
 import { useRouteCalculation } from './hooks/useRouteCalculation';
-import MapControls from './components/MapControls/MapControls';
 import SearchLocation from './components/SearchLocation/SearchLocation';
 import FullscreenMap from './components/FullscreenMap/FullscreenMap';
 import DronesList from './components/DronesList/DronesList';
@@ -76,20 +75,17 @@ const App = () => {
             <h1>Маршрут дрона</h1>
             
             <div className="controls">
-                <SearchLocation {...locationSearch} />
-                <MapControls 
-                    onReset={routeCalculation.clearAllLayers} 
-                    isLoading={isLoading} 
-                />
+                <SearchLocation {...locationSearch} /> 
             </div>
 
               <FullscreenMap 
-								isFullscreen={isMapFullscreen}
-								toggleFullscreen={() => {
-										setIsMapFullscreen(prev => !prev);
-								}}
-								mapRef={mapRef}
-							/>
+                isFullscreen={isMapFullscreen}
+                toggleFullscreen={() => setIsMapFullscreen(prev => !prev)}
+                mapRef={mapRef}
+                map={map}
+                onReset={routeCalculation.clearAllLayers}
+                isLoading={isLoading}
+            	/>
 
             <DronesList 
                 selectedDrone={selectedDrone} 

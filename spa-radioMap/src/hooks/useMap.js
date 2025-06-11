@@ -3,6 +3,7 @@ import { Map, View } from 'ol';
 import { Tile as TileLayer } from 'ol/layer';
 import { OSM } from 'ol/source';
 import { fromLonLat } from 'ol/proj';
+import { defaults as defaultControls } from 'ol/control';
 
 export const useMap = () => {
     const mapRef = useRef(null);
@@ -18,6 +19,11 @@ export const useMap = () => {
                 center: fromLonLat([37.6, 55.7]),
                 zoom: 10 
             }),
+            controls: defaultControls({
+                zoom: false,
+                rotate: false,
+                attribution: true
+            })
         });
 
         setMap(newMap);
@@ -27,5 +33,5 @@ export const useMap = () => {
         };
     }, []);
 
-    return { map, mapRef }; // Теперь возвращаем и карту и ref
+    return { map, mapRef };
 };
