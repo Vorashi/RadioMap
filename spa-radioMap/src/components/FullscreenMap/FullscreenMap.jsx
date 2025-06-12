@@ -75,64 +75,64 @@ const FullscreenMap = ({
         view.animate({ zoom: currentZoom - 1, duration: 200 });
     };
 
-   return (
-    <div className={`map-wrapper ${isFullscreen ? 'fullscreen' : ''}`}>
-        <div 
-            ref={mapRef} 
-            className="map-container"
-        />
-        {children}
-        
-        <div className="map-controls-group">
-            <div className="map-actions-container">
-                <button 
-                    onClick={onReset} 
-                    className="reset-button"
-                    disabled={isLoading}
-                >
-                    Сбросить маршрут
-                </button>
-                {isLoading && <div className="loading-indicator">Загрузка...</div>}
-            </div>
+    return (
+        <div className={`map-wrapper ${isFullscreen ? 'fullscreen' : ''}`}>
+            <div 
+                ref={mapRef} 
+                className="map-container"
+            />
+            {children}
             
-            <div className="map-controls-container">
-                <button 
-                    className="map-control-button zoom-in-button"
-                    onClick={handleZoomIn}
-                    aria-label="Увеличить масштаб"
-                    title="Увеличить масштаб"
-                >
-                    <span className="button-icon">+</span>
-                </button>
-                <button 
-                    className="map-control-button zoom-out-button"
-                    onClick={handleZoomOut}
-                    aria-label="Уменьшить масштаб"
-                    title="Уменьшить масштаб"
-                >
-                    <span className="button-icon">−</span>
-                </button>
+            <div className={`map-controls-group ${isFullscreen ? 'fullscreen-controls' : ''}`}>
+                <div className="map-actions-container">
+                    <button 
+                        onClick={onReset} 
+                        className="reset-button"
+                        disabled={isLoading}
+                    >
+                        Сбросить маршрут
+                    </button>
+                    {isLoading && <div className="loading-indicator">Загрузка...</div>}
+                </div>
+                
+                <div className="map-controls-container">
+                    <button 
+                        className="map-control-button zoom-in-button"
+                        onClick={handleZoomIn}
+                        aria-label="Увеличить масштаб"
+                        title="Увеличить масштаб"
+                    >
+                        <span className="button-icon">+</span>
+                    </button>
+                    <button 
+                        className="map-control-button zoom-out-button"
+                        onClick={handleZoomOut}
+                        aria-label="Уменьшить масштаб"
+                        title="Уменьшить масштаб"
+                    >
+                        <span className="button-icon">−</span>
+                    </button>
+                </div>
             </div>
-        </div>
 
-        <button
-            ref={buttonRef}
-            className={`fullscreen-toggle-button ${isFullscreen ? 'exit-fullscreen' : 'enter-fullscreen'}`}
-            onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                toggleFullscreen();
-            }}
-            aria-label={isFullscreen ? "Выйти из полноэкранного режима" : "Полноэкранный режим"}
-        >
-            {isFullscreen ? (
-                <span className="button-icon">×</span>
-            ) : (
-                <span className="button-icon">⤢</span>
-            )}
-        </button>
-    </div>
-	);
+            <button
+                ref={buttonRef}
+                className={`fullscreen-toggle-button ${isFullscreen ? 'exit-fullscreen' : 'enter-fullscreen'}`}
+                onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleFullscreen();
+                }}
+                aria-label={isFullscreen ? "Выйти из полноэкранного режима" : "Полноэкранный режим"}
+            >
+                {isFullscreen ? (
+                    <span className="button-icon">✕</span>
+                ) : (
+                    <span className="button-icon">⛶</span>
+                )}
+            </button>
+        </div>
+    );
 };
 
 export default FullscreenMap;

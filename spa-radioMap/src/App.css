@@ -46,29 +46,10 @@
     border-radius: 0;
 }
 
-.map-controls-group {
-    position: absolute;
-    bottom: 20px;
-    left: 20px;
-    right: 20px;
-    display: flex;
-    justify-content: space-between;
-    z-index: 1;
-}
-
 .map-actions-container {
     display: flex;
     align-items: center;
     gap: 10px;
-}
-
-.reset-button {
-    background: rgba(255,255,255,0.9);
-    border: 1px solid #ccc;
-    padding: 8px 16px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
 }
 
 .loading-indicator {
@@ -76,12 +57,6 @@
     padding: 8px 16px;
     border-radius: 4px;
     font-size: 14px;
-}
-
-.map-controls-container {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
 }
 
 .map-control-button {
@@ -186,33 +161,11 @@
     overflow: hidden;
 }
 
-.map-controls-group {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    z-index: 1;
-    align-items: flex-end;
-}
-
 .map-actions-container {
     display: flex;
     flex-direction: column;
     gap: 10px;
     align-items: flex-end;
-}
-
-.reset-button {
-    background: rgba(255,255,255,0.9);
-    border: 1px solid #ccc;
-    padding: 8px 16px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    white-space: nowrap;
 }
 
 .loading-indicator {
