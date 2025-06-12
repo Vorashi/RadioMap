@@ -21,10 +21,18 @@ const App = () => {
         message: '',
         type: 'info'
     });
-    const [elevationData] = useState([]);
+    const [elevationPoints, setElevationPoints] = useState([]);
+    const [showLegend, setShowLegend] = useState(false);
     
     const locationSearch = useLocationSearch(map, setNotification);
-    const routeCalculation = useRouteCalculation(map, selectedDrone, setIsLoading, setNotification);
+    const routeCalculation = useRouteCalculation(
+        map, 
+        selectedDrone, 
+        setIsLoading, 
+        setNotification,
+        setElevationPoints,
+        setShowLegend
+    );
 
     const closeNotification = () => {
         setNotification(prev => ({ ...prev, isOpen: false }));
@@ -87,17 +95,22 @@ const App = () => {
                 toggleFullscreen={() => setIsMapFullscreen(prev => !prev)}
                 mapRef={mapRef}
                 map={map}
-                onReset={routeCalculation.clearAllLayers}
+                onReset={() => {
+                    routeCalculation.clearAllLayers();
+                    setShowLegend(false);
+                    setElevationPoints([]);
+                }}
                 isLoading={isLoading}
-            />
+            >
+                <RadioAnalysisLegend visible={showLegend} />
+            </FullscreenMap>
 
-            <div className="analysis-container">
-                <RadioAnalysisLegend />
+            {showLegend && (
                 <ElevationProfile 
-                    elevationData={elevationData} 
+                    elevationData={elevationPoints} 
                     radioAnalysis={routeCalculation.radioAnalysis} 
                 />
-            </div>
+            )}
 
             <DronesList 
                 selectedDrone={selectedDrone} 

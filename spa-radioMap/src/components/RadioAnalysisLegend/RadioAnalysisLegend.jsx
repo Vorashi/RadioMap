@@ -1,9 +1,11 @@
 import React from 'react';
-import './RadioAnalysisLegend.css';
+import '../../App.css';
 
-const RadioAnalysisLegend = () => {
+const RadioAnalysisLegend = ({ visible }) => {
+    if (!visible) return null;
+    
     return (
-        <div className="radio-legend">
+        <div className="radio-legend map-overlay">
             <h4>Легенда радиосвязи</h4>
             <div className="legend-item">
                 <div className="legend-color green"></div>

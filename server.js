@@ -8,7 +8,6 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// Функция расчета расстояния между точками
 function calculateDistance(p1, p2) {
     const R = 6371e3;
     const φ1 = p1.lat * Math.PI/180;
@@ -23,20 +22,17 @@ function calculateDistance(p1, p2) {
     return R * c;
 }
 
-// Функция проверки прямой видимости (упрощенная)
 function hasLineOfSight(p1, p2) {
     const elevationDiff = Math.abs(p1.elevation - p2.elevation);
     const distance = calculateDistance(p1, p2);
-    return elevationDiff / distance < 0.1; // 10% уклон
+    return elevationDiff / distance < 0.1;
 }
 
-// Функция расчета качества сигнала
 function calculateSignalQuality(distance, frequency, maxRange) {
     const normalizedDistance = Math.min(distance / maxRange, 1);
     return Math.pow(1 - normalizedDistance, 2);
 }
 
-// Эндпоинт для анализа радиосвязи
 app.post('/radio-analysis', async (req, res) => {
     const { points, droneRange, frequency = 2.4 } = req.body;
     
@@ -54,7 +50,7 @@ app.post('/radio-analysis', async (req, res) => {
                 segment: i,
                 start: point1,
                 end: point2,
-                distance: distance / 1000, // в км
+                distance: distance / 1000,
                 hasLOS: los,
                 signalQuality,
                 isCritical: signalQuality < 0.3 || !los
@@ -67,7 +63,6 @@ app.post('/radio-analysis', async (req, res) => {
     }
 });
 
-// Эндпоинт для получения данных о высотах
 app.post('/elevation', async (req, res) => {
     const { points } = req.body; 
 

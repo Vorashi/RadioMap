@@ -1,87 +1,4 @@
 .app-container {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  font-family: Arial, sans-serif;
-  padding: 15px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.app-container h1 {
-  color: #333;
-  margin-top: 0;
-}
-
-.app-container {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    padding: 20px;
-    box-sizing: border-box;
-}
-
-.controls {
-    margin-bottom: 20px;
-}
-
-/* Стили для списка дронов */
-.drones-list-container {
-    margin-top: 20px;
-    padding: 15px;
-    background-color: #f5f5f5;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* Общие стили для предотвращения наложения */
-body.fullscreen-map-active {
-    overflow: hidden;
-}
-
-body.fullscreen-map-active .drones-list-container {
-    display: none;
-}
-
-.connection-legend span {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  margin-right: 10px;
-  border-radius: 50%;
-}
-
-.good-connection {
-  background-color: #4CAF50;
-}
-
-.weak-connection {
-  background-color: #FFC107;
-}
-
-.no-connection {
-  background-color: #F44336;
-}
-
-.elevation-profile {
-  margin: 20px;
-  padding: 20px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-@media (max-width: 768px) {
-  .controls {
-    flex-direction: column;
-  }
-  
-  .search-container {
-    width: 100%;
-  }
-}
-
-.app-container {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
@@ -102,19 +19,249 @@ body.fullscreen-map-active .drones-list-container {
     justify-content: center;
 }
 
-.analysis-container {
-    display: flex;
-    flex-direction: column;
-    margin-top: 20px;
-    gap: 20px;
+.map-wrapper {
+    position: relative;
+    height: 500px;
+    width: 100%;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
-@media (min-width: 768px) {
-    .analysis-container {
-        flex-direction: row;
-    }
-    
-    .radio-legend {
-        width: 300px;
-    }
+.map-container {
+    width: 100%;
+    height: 100%;
+}
+
+.fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 100vh;
+    z-index: 1000;
+    margin: 0;
+    border-radius: 0;
+}
+
+.map-controls-group {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    display: flex;
+    justify-content: space-between;
+    z-index: 1;
+}
+
+.map-actions-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.reset-button {
+    background: rgba(255,255,255,0.9);
+    border: 1px solid #ccc;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.loading-indicator {
+    background: rgba(255,255,255,0.9);
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.map-controls-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.map-control-button {
+    width: 40px;
+    height: 40px;
+    background: rgba(255,255,255,0.9);
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+.fullscreen-toggle-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    background: rgba(255,255,255,0.9);
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+}
+
+.elevation-profile-container {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.elevation-profile-container h3 {
+    margin-top: 0;
+    color: #333;
+    font-size: 18px;
+    margin-bottom: 15px;
+}
+
+.elevation-chart {
+    height: 300px;
+}
+
+.profile-notes {
+    margin-top: 15px;
+    font-size: 14px;
+    color: #666;
+    font-style: italic;
+}
+
+.radio-legend.map-overlay {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(255, 255, 255, 0.85);
+    z-index: 1000;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    max-width: 200px;
+}
+
+.radio-legend.map-overlay h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    border-radius: 3px;
+}
+
+.legend-color.green {
+    background-color: rgba(0, 255, 0, 0.7);
+}
+
+.legend-color.orange {
+    background-color: rgba(255, 165, 0, 0.7);
+}
+
+.legend-color.red {
+    background-color: rgba(255, 0, 0, 0.7);
+}
+
+.fullscreen-map-active {
+    overflow: hidden;
+}
+
+.map-controls-group {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 1;
+    align-items: flex-end;
+}
+
+.map-actions-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-end;
+}
+
+.reset-button {
+    background: rgba(255,255,255,0.9);
+    border: 1px solid #ccc;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    white-space: nowrap;
+}
+
+.loading-indicator {
+    background: rgba(255,255,255,0.9);
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 14px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.elevation-profile-container {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin: 20px 0;
+    width: 100%;
+}
+
+.elevation-chart {
+    height: 300px;
+    margin-top: 20px;
+}
+
+.chart-tooltip {
+    background: white;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.chart-tooltip p {
+    margin: 5px 0;
+    font-size: 14px;
+}
+
+.signal-status {
+    font-weight: bold;
+}
+
+.signal-good {
+    color: #4CAF50;
+}
+
+.signal-warning {
+    color: #FF9800;
+}
+
+.signal-critical {
+    color: #F44336;
 }

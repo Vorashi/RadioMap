@@ -9,7 +9,14 @@ import { createRadiusPolygon, getDistance } from '../utils/geoUtils';
 import { fetchElevationData } from '../utils/api';
 import { useRadioAnalysis } from './useRadioAnalysis';
 
-export const useRouteCalculation = (map, selectedDrone, setIsLoading, setNotification) => {
+export const useRouteCalculation = (
+    map, 
+    selectedDrone, 
+    setIsLoading, 
+    setNotification,
+    setElevationPoints,
+    setShowLegend
+) => {
     const layersRef = useRef({
         startMarker: null,
         endMarker: null,
@@ -277,6 +284,7 @@ export const useRouteCalculation = (map, selectedDrone, setIsLoading, setNotific
             setIsLoading(true);
             try {
                 const elevationPoints = await fetchElevationData(startCoords, coordinates);
+                setElevationPoints(elevationPoints);
                 showElevationPoints(elevationPoints);
                 
                 const radioAnalysisResults = await analyzeRoute(
@@ -291,6 +299,7 @@ export const useRouteCalculation = (map, selectedDrone, setIsLoading, setNotific
                 
                 setRadioAnalysis(radioAnalysisResults);
                 styleRouteSegments(radioAnalysisResults);
+                setShowLegend(true);
             } catch (error) {
                 console.error('Error calculating route:', error);
                 setNotification({
@@ -302,7 +311,7 @@ export const useRouteCalculation = (map, selectedDrone, setIsLoading, setNotific
                 setIsLoading(false);
             }
         }
-    }, [map, selectedDrone, updateRadius, showElevationPoints, setIsLoading, setNotification, analyzeRoute, styleRouteSegments]);
+    }, [map, selectedDrone, updateRadius, showElevationPoints, setIsLoading, setNotification, analyzeRoute, styleRouteSegments, setElevationPoints, setShowLegend]);
 
     return {
         layersRef,
