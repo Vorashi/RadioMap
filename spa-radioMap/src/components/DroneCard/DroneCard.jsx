@@ -16,6 +16,9 @@ const DroneCard = ({ drone, isSelected, onSelect }) => {
                     {drone.range && <p><strong>Дальность:</strong> {drone.range} км</p>}
                     {drone.speed && <p><strong>Скорость:</strong> {drone.speed} км/ч</p>}
                     {drone.weight && <p><strong>Вес:</strong> {drone.weight} г</p>}
+                    {drone.batteryLife && <p><strong>Время полета:</strong> {drone.batteryLife} мин</p>}
+                    {drone.camera && <p><strong>Камера:</strong> {drone.camera}</p>}
+                    <p><strong>Полезная нагрузка:</strong> {drone.payload ? 'Да' : 'Нет'}</p>
                 </div>
                 <p className="drone-description">{drone.description}</p>
             </div>

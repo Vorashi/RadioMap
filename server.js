@@ -8,6 +8,59 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+const drones = [
+    { 
+        id: 1,
+        name: 'DJI Mavic 3', 
+        range: 10,
+        speed: 65,
+        weight: 895,
+        frequency: 2.4,
+        description: 'Компактный дрон для аэрофотосъемки с камерой Hasselblad',
+        image: 'https://mydrone.ru/images/ab__webp/thumbnails/550/450/detailed/121/Квадрокоптер_DJI_Mavic_3_Classic__без_пульта__jpg.webp'
+    },
+    { 
+        id: 2,
+        name: 'DJI Matrice 300', 
+        range: 50,
+        speed: 82,
+        weight: 3700,
+        frequency: 5.8,
+        description: 'Профессиональный промышленный дрон для сложных задач',
+        image: 'https://m-files.cdn1.cc/lpfile/b/b/e/bbe19b5a1c7370bc972efa77de5a0122/-/resize/1920/f.jpg?11899100'
+    },
+    { 
+        id: 3,
+        name: 'Autel EVO II', 
+        range: 100,
+        speed: 72,
+        weight: 1127,
+        frequency: 2.4,
+        description: 'Дрон с 8K камерой и продвинутыми функциями съемки',
+        image: 'https://static.insales-cdn.com/r/Z3PCB95Z-tI/rs:fit:550:550:1/plain/images/products/1/4950/932778838/kvadrokopter-autel-robotics-evo-ii-dual-640t-rtk-rugged-bundle-v2.jpg@webp'
+    },
+    { 
+        id: 4,
+        name: 'WingtraOne', 
+        range: 1000,
+        speed: 58,
+        weight: 3100,
+        frequency: 5.8,
+        description: 'Дрон-самолет для картографии и геодезии',
+        image: 'https://i.pinimg.com/originals/b3/65/e7/b365e7f94b29bb230e955de85631520d.png'
+    },
+    { 
+        id: 5,
+        name: 'Особый дрон', 
+        range: null,
+        speed: null,
+        weight: null,
+        frequency: 2.4,
+        description: 'Кастомная модель без ограничений по дальности',
+        image: 'https://cdn-icons-png.flaticon.com/512/3447/3447594.png'
+    },
+];
+
 function calculateDistance(p1, p2) {
     const R = 6371e3;
     const φ1 = p1.lat * Math.PI/180;
@@ -32,6 +85,41 @@ function calculateSignalQuality(distance, frequency, maxRange) {
     const normalizedDistance = Math.min(distance / maxRange, 1);
     return Math.pow(1 - normalizedDistance, 2);
 }
+
+// Получение всех дронов
+app.get('/api/drones', (req, res) => {
+    res.json(drones);
+});
+
+// Добавление нового дрона
+app.post('/api/drones', (req, res) => {
+    const newDrone = {
+        id: drones.length + 1,
+        ...req.body
+    };
+    drones.push(newDrone);
+    res.status(201).json(newDrone);
+});
+
+// Обновление дрона
+app.put('/api/drones/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    const index = drones.findIndex(d => d.id === id);
+    
+    if (index === -1) {
+        return res.status(404).json({ error: 'Дрон не найден' });
+    }
+    
+    drones[index] = { ...drones[index], ...req.body };
+    res.json(drones[index]);
+});
+
+// Удаление дрона
+app.delete('/api/drones/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    drones = drones.filter(d => d.id !== id);
+    res.status(204).send();
+});
 
 app.post('/radio-analysis', async (req, res) => {
     const { points, droneRange, frequency = 2.4 } = req.body;

@@ -9,11 +9,12 @@ import DronesList from './components/DronesList/DronesList';
 import NotificationModal from './components/NotificationModal/NotificationModal';
 import RadioAnalysisLegend from './components/RadioAnalysisLegend/RadioAnalysisLegend';
 import ElevationProfile from './components/ElevationProfile/ElevationProfile';
+import DroneManagement from './components/DroneManagement/DroneManagement';
 import './App.css';
 
 const App = () => {
     const { map, mapRef } = useMap();
-    const { selectedDrone, setSelectedDrone } = useDroneSelection();
+    const { selectedDrone, setSelectedDrone, drones, loading, error } = useDroneSelection(); // Получаем все значения
     const [isLoading, setIsLoading] = useState(false);
     const [isMapFullscreen, setIsMapFullscreen] = useState(false);
     const [notification, setNotification] = useState({
@@ -23,6 +24,7 @@ const App = () => {
     });
     const [elevationPoints, setElevationPoints] = useState([]);
     const [showLegend, setShowLegend] = useState(false);
+		const [showManagement, setShowManagement] = useState(false);
     
     const locationSearch = useLocationSearch(map, setNotification);
     const routeCalculation = useRouteCalculation(
@@ -114,8 +116,20 @@ const App = () => {
 
             <DronesList 
                 selectedDrone={selectedDrone} 
-                onSelectDrone={setSelectedDrone} 
+                onSelectDrone={setSelectedDrone}
+								drones={drones}
+                loading={loading}
+                error={error} 
             />
+
+						<button 
+							onClick={() => setShowManagement(!showManagement)}
+							className="management-toggle"
+						>
+							{showManagement ? 'Закрыть управление' : 'Управление дронами'}
+						</button>
+						
+						{showManagement && <DroneManagement />}
 
             <NotificationModal 
                 isOpen={notification.isOpen}
