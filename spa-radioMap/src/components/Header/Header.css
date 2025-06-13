@@ -11,6 +11,12 @@
   height: 70px;
   display: flex;
   align-items: center;
+  transition: all 0.3s ease;
+}
+
+.app-header.scrolled {
+  padding: 8px 0;
+  background-color: rgba(255, 255, 255, 0.98);
 }
 
 .header-content {
@@ -29,7 +35,7 @@
 
 .header-nav {
   display: flex;
-  gap: 20px;
+  gap: 15px;
   align-items: center;
   position: absolute;
   left: 50%;
@@ -60,66 +66,127 @@
   font-weight: 600;
 }
 
-.scroll-to-top-button {
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background-color: #2196F3;
-  color: white;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
+/* Новые стили для правой части */
+.header-right-controls {
   display: flex;
   align-items: center;
-  justify-content: center;
-  z-index: 999;
-  opacity: 0.9;
+  gap: 15px;
 }
 
-.scroll-to-top-button:hover {
-  background-color: #0d8bf2;
-  transform: translateY(-3px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-  opacity: 1;
+.icon {
+  width: 20px;
+  height: 20px;
+  transition: all 0.3s ease;
+}
+
+.github-link,
+.theme-toggle,
+.language-toggle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.github-link:hover,
+.theme-toggle:hover,
+.language-toggle:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.language-selector {
+  position: relative;
+}
+
+.language-dropdown {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 5px;
+  z-index: 1001;
+}
+
+.language-dropdown button {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.language-dropdown button:hover {
+  background-color: #f5f5f5;
+}
+
+/* Темная тема */
+body.dark-theme .app-header {
+  background-color: rgba(30, 30, 30, 0.95);
+  color: #fff;
+}
+
+body.dark-theme .nav-link {
+  color: #eee;
+}
+
+body.dark-theme .nav-link:hover {
+  color: #64b5f6;
+  background-color: rgba(100, 181, 246, 0.1);
+}
+
+body.dark-theme .language-dropdown {
+  background: #333;
+  color: #fff;
+}
+
+body.dark-theme .language-dropdown button:hover {
+  background-color: #444;
 }
 
 /* Адаптивность */
-@media (max-width: 768px) {
-  .header-content {
-    padding: 0 10px;
-    flex-direction: column;
-    height: auto;
-    padding: 10px;
-  }
-  
-  .logo {
-    height: 30px;
-    margin-bottom: 10px;
-  }
-  
+@media (max-width: 1024px) {
   .header-nav {
-    position: static;
-    transform: none;
-    gap: 8px;
-    flex-wrap: wrap;
-    justify-content: center;
+    gap: 10px;
   }
   
   .nav-link {
     font-size: 14px;
     padding: 6px 8px;
   }
+  
+  .header-right-controls {
+    gap: 10px;
+  }
+}
 
-  .scroll-to-top-button {
-    width: 40px;
-    height: 40px;
-    bottom: 20px;
-    right: 20px;
-    font-size: 16px;
+@media (max-width: 768px) {
+  .header-content {
+    padding: 0 10px;
+  }
+  
+  .logo {
+    height: 30px;
+  }
+  
+  .header-nav {
+    position: static;
+    transform: none;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 0 10px;
+  }
+  
+  .header-right-controls {
+    display: none; /* Скрываем на мобильных */
   }
 }

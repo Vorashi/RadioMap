@@ -273,6 +273,33 @@
   }
 }
 
+/* Темная тема */
+body.dark-theme {
+  background-color: #121212;
+  color: #ffffff;
+}
+
+body.dark-theme .app-container {
+  background-color: #121212;
+}
+
+body.dark-theme .drones-container,
+body.dark-theme .drone-management,
+body.dark-theme .drone-card {
+  background-color: #1e1e1e;
+  color: #ffffff;
+}
+
+body.dark-theme .drone-card {
+  border-color: #333;
+}
+
+body.dark-theme .search-input {
+  background-color: #333;
+  color: #fff;
+  border-color: #444;
+}
+
 .signal-status {
     font-weight: bold;
 }
