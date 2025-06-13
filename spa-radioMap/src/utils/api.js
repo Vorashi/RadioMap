@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { toLonLat, fromLonLat } from 'ol/proj';
 import { getDistance } from './geoUtils';
-import { NOMINATIM_URL } from './constants'
+import { NOMINATIM_URL } from './constants';
 
 export const searchLocations = async (query) => {
     if (!query || query.length < 3) {

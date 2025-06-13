@@ -45,7 +45,8 @@ export const useRouteCalculation = (
             hoverMarker: null
         };
         setRadioAnalysis(null);
-    }, [map]);
+        setElevationPoints([]);
+    }, [map, setElevationPoints]);
 
     const updateRadius = useCallback(() => {
         if (!map || !layersRef.current.startMarker) return;
@@ -56,7 +57,7 @@ export const useRouteCalculation = (
         
         const startCoords = layersRef.current.startMarker.getSource().getFeatures()[0].getGeometry().getCoordinates();
         
-        if (selectedDrone.range !== null) {
+        if (selectedDrone?.range !== null) {
             const radiusCoords = createRadiusPolygon(startCoords, selectedDrone.range);
             const radiusFeature = new Feature({
                 geometry: new LineString(radiusCoords)
