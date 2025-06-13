@@ -1,167 +1,30 @@
 .map-wrapper {
-    position: relative;
-    width: 100%;
-    height: 50vh;
-    transition: height 0.3s ease;
-    margin-bottom: 20px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    overflow: hidden;
+  position: relative;
+  width: 100%;
+  height: 50vh;
+  transition: height 0.3s ease;
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
 }
 
 .map-wrapper.fullscreen {
-    height: 100vh;
-    border: none;
-    border-radius: 0;
-    margin-bottom: 0;
+  height: 100vh;
+  border: none;
+  border-radius: 0;
+  margin-bottom: 0;
 }
 
 .map-container {
-    width: 100%;
-    height: 100%;
-    position: relative;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transition: opacity 0.3s ease;
 }
 
-/* Контейнер для элементов управления - теперь внизу справа */
-.map-controls-group {
-    position: absolute;
-    bottom: 20px;
-    right: 20px;
-    display: flex;
-    flex-direction: row;
-    gap: 12px;
-    z-index: 1001;
-    background-color: rgba(255, 255, 255, 0.95);
-    padding: 10px;
-    border-radius: 6px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
-    align-items: center;
-}
-
-.map-controls-group.fullscreen-controls {
-    position: fixed;
-    bottom: 25px;
-    right: 25px;
-    z-index: 1001;
-}
-
-/* Контейнер для кнопок масштабирования */
-.map-controls-container {
-    display: flex;
-    gap: 8px;
-}
-
-/* Стили для кнопок управления */
-.map-control-button {
-    width: 38px;
-    height: 38px;
-    border-radius: 5px;
-    background-color: white;
-    border: 1px solid #ddd;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.map-control-button:hover {
-    background-color: #f8f8f8;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-    transform: translateY(-1px);
-}
-
-.map-control-button .button-icon {
-    font-size: 18px;
-    font-weight: bold;
-    color: #333;
-}
-
-/* Контейнер для кнопки сброса */
-.map-actions-container {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-/* Кнопка сброса */
-.reset-button {
-    padding: 8px 16px;
-    background-color: #3887be;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    transition: background-color 0.2s;
-    white-space: nowrap;
-}
-
-.reset-button:hover {
-    background-color: #2c6b94;
-}
-
-.reset-button:disabled {
-    background-color: #aaaaaa;
-    cursor: not-allowed;
-}
-
-/* Индикатор загрузки */
-.loading-indicator {
-    color: #3887be;
-    font-size: 14px;
-    font-weight: 500;
-    padding: 2px 8px;
-    background-color: rgba(255, 255, 255, 0.9);
-    border-radius: 4px;
-}
-
-/* Кнопка полноэкранного режима - теперь внизу слева */
-.fullscreen-toggle-button {
-    width: 38px;
-    height: 38px;
-    border-radius: 5px;
-    background-color: white;
-    border: 1px solid #ddd;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    position: absolute;
-    bottom: 20px;
-    left: 20px;
-    z-index: 1001;
-		bottom: 20px;
-    right: 80px; /* чтобы не перекрывать другие элементы */
-    left: auto;
-}
-
-.fullscreen-toggle-button:hover {
-    background-color: #f8f8f8;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-}
-
-.fullscreen-toggle-button .button-icon {
-    font-size: 18px;
-    font-weight: bold;
-    color: #333;
-}
-
-.fullscreen-toggle-button.exit-fullscreen {
-    position: fixed;
-    bottom: 25px;
-    right: 80px;
-    left: auto;
-    z-index: 1001;
-}
-
-/* Анимация для полноэкранного режима */
-.fullscreen-map-active {
-    overflow: hidden;
+.map-container[style*="hidden"] {
+  opacity: 0;
 }
 
 .map-loading-overlay {
@@ -170,7 +33,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.95);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -179,12 +42,13 @@
 }
 
 .map-loading-spinner {
-  border: 5px solid #f3f3f3;
+  border: 5px solid rgba(243, 243, 243, 0.3);
   border-top: 5px solid #3498db;
   border-radius: 50%;
   width: 50px;
   height: 50px;
   animation: spin 1s linear infinite;
+  margin-bottom: 20px;
 }
 
 @keyframes spin {
@@ -192,81 +56,194 @@
   100% { transform: rotate(360deg); }
 }
 
-.map-container {
-  transition: opacity 0.3s ease;
+.progress-bar-container {
+  width: 200px;
+  height: 10px;
+  background: #f1f1f1;
+  border-radius: 5px;
+  margin: 10px 0;
+  overflow: hidden;
 }
 
-.map-container[style*="hidden"] {
-  opacity: 0;
+.progress-bar {
+  height: 100%;
+  background: #3498db;
+  transition: width 0.15s ease-out;
+  will-change: width;
 }
 
-/* Адаптация для мобильных устройств */
+.map-loading-overlay p {
+  margin-top: 10px;
+  font-size: 16px;
+  color: #333;
+  font-weight: 500;
+}
+
+.map-controls-group {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  z-index: 1001;
+  background-color: rgba(255, 255, 255, 0.95);
+  padding: 10px;
+  border-radius: 6px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  align-items: center;
+}
+
+.map-controls-group.fullscreen-controls {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  z-index: 1001;
+}
+
+.map-controls-container {
+  display: flex;
+  gap: 8px;
+}
+
+.map-control-button {
+  width: 38px;
+  height: 38px;
+  border-radius: 5px;
+  background-color: white;
+  border: 1px solid #ddd;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.map-control-button:hover:not(:disabled) {
+  background-color: #f8f8f8;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.map-control-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.map-control-button .button-icon {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+}
+
+.map-actions-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.reset-button {
+  padding: 8px 16px;
+  background-color: #3887be;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+.reset-button:hover:not(:disabled) {
+  background-color: #2c6b94;
+}
+
+.reset-button:disabled {
+  background-color: #aaaaaa;
+  cursor: not-allowed;
+}
+
+.loading-indicator {
+  color: #3887be;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 2px 8px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 4px;
+}
+
+.fullscreen-toggle-button {
+  width: 38px;
+  height: 38px;
+  border-radius: 5px;
+  background-color: white;
+  border: 1px solid #ddd;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: absolute;
+  bottom: 20px;
+  right: 80px;
+  z-index: 1001;
+}
+
+.fullscreen-toggle-button:hover:not(:disabled) {
+  background-color: #f8f8f8;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.fullscreen-toggle-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.fullscreen-toggle-button .button-icon {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+}
+
+.fullscreen-toggle-button.exit-fullscreen {
+  position: fixed;
+  bottom: 25px;
+  right: 80px;
+  z-index: 1001;
+}
+
+.fullscreen-map-active {
+  overflow: hidden;
+}
+
 @media (max-width: 768px) {
-    .map-controls-group {
-        flex-direction: column;
-        gap: 8px;
-        padding: 8px;
-        bottom: 10px;
-        right: 10px;
-    }
-    
-    .map-actions-container {
-        flex-direction: column;
-        align-items: flex-end;
-    }
-    
-    .map-controls-container {
-        flex-direction: row;
-    }
-    
-    .reset-button {
-        padding: 6px 12px;
-        font-size: 13px;
-    }
-    
-    .fullscreen-toggle-button {
-        bottom: 10px;
-        left: 10px;
-    }
-}
-
-.style-toggle-button {
-    width: 38px;
-    height: 38px;
-    border-radius: 5px;
-    background-color: white;
-    border: 1px solid #ddd;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.style-toggle-button:hover {
-    background-color: #f8f8f8;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-    transform: translateY(-1px);
-}
-
-.style-toggle-button .button-icon {
-    font-size: 18px;
-}
-
-.map-style-tooltip {
-    position: absolute;
-    right: 120px;
-    bottom: 30px;
-    background: white;
-    padding: 5px 10px;
-    border-radius: 4px;
-    font-size: 12px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-    opacity: 0;
-    transition: opacity 0.3s;
-}
-
-.style-toggle-button:hover + .map-style-tooltip {
-    opacity: 1;
+  .map-controls-group {
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px;
+    bottom: 10px;
+    right: 10px;
+  }
+  
+  .map-actions-container {
+    flex-direction: column;
+    align-items: flex-end;
+  }
+  
+  .map-controls-container {
+    flex-direction: row;
+  }
+  
+  .reset-button {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+  
+  .fullscreen-toggle-button {
+    bottom: 10px;
+    right: 70px;
+  }
 }

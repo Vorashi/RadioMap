@@ -203,6 +203,70 @@
     font-size: 14px;
 }
 
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.app-container h1 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #333;
+}
+
+.controls {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.management-toggle {
+  padding: 10px 20px;
+  background: #3887be;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 20px auto;
+  display: block;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+.management-toggle:hover {
+  background: #2c6b94;
+}
+
+/* Стили для индикатора загрузки */
+.loading-indicator {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Адаптивные стили */
+@media (max-width: 768px) {
+  .app-container {
+    padding: 10px;
+  }
+  
+  .app-container h1 {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+  }
+  
+  .management-toggle {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+}
+
 .signal-status {
     font-weight: bold;
 }

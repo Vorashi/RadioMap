@@ -1,11 +1,17 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { Map, View } from 'ol';
 import { Tile as TileLayer, Vector as VectorLayer } from 'ol/layer';
 import { XYZ, Vector as VectorSource, OSM } from 'ol/source';
-import { fromLonLat, toLonLat } from 'ol/proj';
+import { fromLonLat } from 'ol/proj';
 import { defaults as defaultControls } from 'ol/control';
 import GeoJSON from 'ol/format/GeoJSON';
 import { Style, Fill, Stroke, Circle } from 'ol/style';
+
+const OVERPASS_SERVERS = [
+  'https://overpass-api.de/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
+  'https://maps.mail.ru/osm/tools/overpass/api/interpreter'
+];
 
 const mapStyles = {
   osm: {
@@ -63,6 +69,42 @@ export const useMap = () => {
   const [currentStyle, setCurrentStyle] = useState('osm');
   const [obstaclesLayer, setObstaclesLayer] = useState(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
+  const tileCountRef = useRef({ loaded: 0, total: 0 });
+  // eslint-disable-next-line no-unused-vars
+  const requestQueueRef = useRef([]);
+  // eslint-disable-next-line no-unused-vars
+  const isRequestingRef = useRef(false);
+  // eslint-disable-next-line no-unused-vars
+  const cacheRef = useRef(new Map());
+
+  const resetTileCounter = useCallback(() => {
+    tileCountRef.current = { loaded: 0, total: 0 };
+  }, []);
+
+  const updateTileProgress = useCallback(() => {
+    if (tileCountRef.current.total > 0 && 
+        tileCountRef.current.loaded >= tileCountRef.current.total) {
+      setIsMapLoaded(true);
+    }
+  }, []);
+
+  const setupTileListeners = useCallback((source) => {
+    if (!source) return;
+
+    source.on('tileloadstart', () => {
+      tileCountRef.current.total++;
+    });
+    
+    source.on('tileloadend', () => {
+      tileCountRef.current.loaded++;
+      updateTileProgress();
+    });
+    
+    source.on('tileloaderror', () => {
+      tileCountRef.current.loaded++;
+      updateTileProgress();
+    });
+  }, [updateTileProgress]);
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -82,6 +124,8 @@ export const useMap = () => {
       })
     });
 
+    setupTileListeners(mapStyles.osm.layer.getSource());
+
     const obstacles = new VectorLayer({
       source: new VectorSource(),
       style: obstacleStyle,
@@ -92,81 +136,52 @@ export const useMap = () => {
     mapInstance.addLayer(obstacles);
     setObstaclesLayer(obstacles);
     setMap(mapInstance);
-
-    mapInstance.once('postrender', () => {
-      setIsMapLoaded(true);
-    });
+    setIsMapLoaded(true);
 
     return () => {
       mapInstance.setTarget(undefined);
       setIsMapLoaded(false);
+      resetTileCounter();
     };
-  }, []);
+  }, [resetTileCounter, setupTileListeners]);
 
-  const changeMapStyle = (style) => {
+  const changeMapStyle = useCallback((style) => {
     if (!map || !mapStyles[style]) return;
     
-    // Удаляем все векторные слои (включая маркеры и радиус)
-    map.getLayers().getArray().forEach(layer => {
-      if (layer.get('type') === 'vector') {
-        map.removeLayer(layer);
-      }
-    });
+    resetTileCounter();
+    setIsMapLoaded(false);
     
-    // Удаляем все базовые слои
-    map.getLayers().getArray().forEach(layer => {
-      if (layer.get('type') === 'base') {
-        map.removeLayer(layer);
-      }
-    });
+    // eslint-disable-next-line no-unused-vars
+    const vectorLayers = map.getLayers().getArray()
+      .filter(layer => layer.get('type') === 'vector');
     
-    // Добавляем новый базовый слой
+    map.getLayers().getArray()
+      .filter(layer => layer.get('type') === 'base')
+      .forEach(layer => map.removeLayer(layer));
+    
     const newLayer = mapStyles[style].layer;
+    setupTileListeners(newLayer.getSource());
+    
     map.addLayer(newLayer);
-    
-    // Восстанавливаем слой препятствий
-    if (obstaclesLayer) {
-      map.addLayer(obstaclesLayer);
-    }
-    
     setCurrentStyle(style);
-  };
+    
+    // Если нет тайлов для загрузки (кешированные)
+    if (tileCountRef.current.total === 0) {
+      setIsMapLoaded(true);
+    }
+  }, [map, resetTileCounter, setupTileListeners]);
 
-  const toggleMapStyle = () => {
+  const toggleMapStyle = useCallback(() => {
     const styles = Object.keys(mapStyles);
     const currentIndex = styles.indexOf(currentStyle);
     const nextIndex = (currentIndex + 1) % styles.length;
     changeMapStyle(styles[nextIndex]);
-  };
+  }, [changeMapStyle, currentStyle]);
 
-  const updateObstacles = (bbox) => {
-    if (!obstaclesLayer) return;
-    
-    const southWest = toLonLat([bbox[0], bbox[1]]);
-    const northEast = toLonLat([bbox[2], bbox[3]]);
-    
-    const overpassBbox = `${southWest[1]},${southWest[0]},${northEast[1]},${northEast[0]}`;
-    
-    const query = `[out:json];
-      (
-        way["building"](${overpassBbox});
-        node["natural"="tree"](${overpassBbox});
-        way["barrier"](${overpassBbox});
-      );
-      out body;
-      >;
-      out skel qt;`;
-    
-    fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`)
-      .then(response => response.json())
-      .then(data => {
-        const features = new GeoJSON().readFeatures(data);
-        obstaclesLayer.getSource().addFeatures(features);
-      })
-      .catch(error => {
-        console.error('Error fetching obstacles:', error);
-      });
-  };
+  const getLoadingProgress = useCallback(() => {
+    if (tileCountRef.current.total === 0) return 100;
+    return Math.min(100, (tileCountRef.current.loaded / tileCountRef.current.total) * 100);
+  }, []);
 
   return { 
     map, 
@@ -176,7 +191,7 @@ export const useMap = () => {
     toggleMapStyle,
     mapStyles,
     obstaclesLayer,
-    updateObstacles,
-    isMapLoaded
+    isMapLoaded,
+    loadingProgress: getLoadingProgress()
   };
 };

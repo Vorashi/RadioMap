@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import './FullscreenMap.css';
 
 const FullscreenMap = ({ 
@@ -12,11 +12,14 @@ const FullscreenMap = ({
   currentStyle,
   toggleMapStyle,
   mapStyles,
-  isMapLoaded
+  isMapLoaded,
+  loadingProgress
 }) => {
   const buttonRef = useRef(null);
   const cleanupRef = useRef(null);
   const originalStylesRef = useRef(null);
+  const [displayProgress, setDisplayProgress] = useState(0);
+  const animationRef = useRef(null);
 
   useEffect(() => {
     const mapContainer = mapRef.current;
@@ -65,6 +68,28 @@ const FullscreenMap = ({
     return cleanup;
   }, [isFullscreen, mapRef]);
 
+  useEffect(() => {
+    const animateProgress = () => {
+      setDisplayProgress(prev => {
+        const nextProgress = Math.min(loadingProgress, prev + 1);
+        if (nextProgress < loadingProgress) {
+          animationRef.current = requestAnimationFrame(animateProgress);
+        }
+        return nextProgress;
+      });
+    };
+
+    if (loadingProgress > displayProgress) {
+      animationRef.current = requestAnimationFrame(animateProgress);
+    }
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [loadingProgress, displayProgress]);
+
   const handleZoomIn = () => {
     if (!map) return;
     const view = map.getView();
@@ -92,7 +117,13 @@ const FullscreenMap = ({
       {!isMapLoaded && (
         <div className="map-loading-overlay">
           <div className="map-loading-spinner"></div>
-          <p>Загрузка карты...</p>
+          <div className="progress-bar-container">
+            <div 
+              className="progress-bar" 
+              style={{ width: `${displayProgress}%` }}
+            ></div>
+          </div>
+          <p>Загрузка карты: {Math.round(displayProgress)}%</p>
         </div>
       )}
       <div 
@@ -107,7 +138,7 @@ const FullscreenMap = ({
           <button 
             onClick={onReset} 
             className="reset-button"
-            disabled={isLoading}
+            disabled={isLoading || !isMapLoaded}
           >
             Сбросить маршрут
           </button>
@@ -120,6 +151,7 @@ const FullscreenMap = ({
             onClick={handleZoomIn}
             aria-label="Увеличить масштаб"
             title="Увеличить масштаб"
+            disabled={!isMapLoaded}
           >
             <span className="button-icon">+</span>
           </button>
@@ -128,6 +160,7 @@ const FullscreenMap = ({
             onClick={handleZoomOut}
             aria-label="Уменьшить масштаб"
             title="Уменьшить масштаб"
+            disabled={!isMapLoaded}
           >
             <span className="button-icon">−</span>
           </button>
@@ -136,6 +169,7 @@ const FullscreenMap = ({
             onClick={toggleMapStyle}
             aria-label="Переключить стиль карты"
             title={`Текущий стиль: ${mapStyles[currentStyle].name}`}
+            disabled={!isMapLoaded}
           >
             <span className="button-icon">{getStyleIcon()}</span>
           </button>
@@ -151,6 +185,7 @@ const FullscreenMap = ({
           toggleFullscreen();
         }}
         aria-label={isFullscreen ? "Выйти из полноэкранного режима" : "Полноэкранный режим"}
+        disabled={!isMapLoaded}
       >
         {isFullscreen ? (
           <span className="button-icon">✕</span>

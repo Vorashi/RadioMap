@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useMap } from './hooks/useMap';
 import { useDroneSelection } from './hooks/useDroneSelection';
 import { useLocationSearch } from './hooks/useLocationSearch';
@@ -19,10 +19,9 @@ const App = () => {
     currentStyle,
     toggleMapStyle,
     mapStyles,
-    // eslint-disable-next-line no-unused-vars
     obstaclesLayer,
-    updateObstacles,
-    isMapLoaded
+    isMapLoaded,
+    loadingProgress
   } = useMap();
   
   const { selectedDrone, setSelectedDrone, drones, loading, error } = useDroneSelection();
@@ -47,17 +46,16 @@ const App = () => {
     setShowLegend
   );
 
- 	const toggleMapStyleHandler = () => {
+  const closeNotification = useCallback(() => {
+    setNotification(prev => ({ ...prev, isOpen: false }));
+  }, []);
+
+  const handleToggleMapStyle = useCallback(() => {
     toggleMapStyle();
-    // Очищаем маршрут и скрываем легенду при смене стиля
     routeCalculation.clearAllLayers();
     setShowLegend(false);
     setElevationPoints([]);
-  };
-
-  const closeNotification = () => {
-    setNotification(prev => ({ ...prev, isOpen: false }));
-  };
+  }, [toggleMapStyle, routeCalculation]);
 
   useEffect(() => {
     if (!map) return;
@@ -93,6 +91,24 @@ const App = () => {
   }, [map, routeCalculation]);
 
   useEffect(() => {
+    if (!map || !routeCalculation.layersRef.current.startMarker) {
+      setShowLegend(false);
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      // eslint-disable-next-line no-unused-vars
+      const extent = map.getView().calculateExtent(map.getSize());
+      if (obstaclesLayer) {
+        obstaclesLayer.getSource().clear();
+      }
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, obstaclesLayer, routeCalculation.layersRef.current.startMarker]);
+
+  useEffect(() => {
     if (map && routeCalculation.layersRef.current.startMarker) {
       routeCalculation.updateRadius();
       
@@ -100,12 +116,8 @@ const App = () => {
         map.removeLayer(routeCalculation.layersRef.current.radiusLayer);
         routeCalculation.layersRef.current.radiusLayer = null;
       }
-      
-      // Обновляем препятствия при изменении маршрута
-      const extent = map.getView().calculateExtent(map.getSize());
-      updateObstacles(extent);
     }
-  }, [map, selectedDrone, routeCalculation, updateObstacles]);
+  }, [map, selectedDrone, routeCalculation]);
 
   return (
     <div className="app-container">
@@ -127,11 +139,12 @@ const App = () => {
         }}
         isLoading={isLoading}
         currentStyle={currentStyle}
-        toggleMapStyle={toggleMapStyleHandler}
+        toggleMapStyle={handleToggleMapStyle}
         mapStyles={mapStyles}
         isMapLoaded={isMapLoaded}
+        loadingProgress={loadingProgress}
       >
-        {showLegend && <RadioAnalysisLegend visible={showLegend} />}
+        <RadioAnalysisLegend visible={showLegend} />
       </FullscreenMap>
 
       {showLegend && elevationPoints.length > 0 && (
