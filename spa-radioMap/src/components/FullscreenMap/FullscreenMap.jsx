@@ -11,7 +11,8 @@ const FullscreenMap = ({
   children,
   currentStyle,
   toggleMapStyle,
-  mapStyles
+  mapStyles,
+  isMapLoaded
 }) => {
   const buttonRef = useRef(null);
   const cleanupRef = useRef(null);
@@ -88,9 +89,16 @@ const FullscreenMap = ({
 
   return (
     <div className={`map-wrapper ${isFullscreen ? 'fullscreen' : ''}`}>
+      {!isMapLoaded && (
+        <div className="map-loading-overlay">
+          <div className="map-loading-spinner"></div>
+          <p>Загрузка карты...</p>
+        </div>
+      )}
       <div 
         ref={mapRef} 
         className="map-container"
+        style={{ visibility: isMapLoaded ? 'visible' : 'hidden' }}
       />
       {children}
       

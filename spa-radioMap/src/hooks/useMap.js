@@ -62,6 +62,7 @@ export const useMap = () => {
   const [map, setMap] = useState(null);
   const [currentStyle, setCurrentStyle] = useState('osm');
   const [obstaclesLayer, setObstaclesLayer] = useState(null);
+  const [isMapLoaded, setIsMapLoaded] = useState(false);
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -92,29 +93,41 @@ export const useMap = () => {
     setObstaclesLayer(obstacles);
     setMap(mapInstance);
 
-    return () => mapInstance.setTarget(undefined);
+    mapInstance.once('postrender', () => {
+      setIsMapLoaded(true);
+    });
+
+    return () => {
+      mapInstance.setTarget(undefined);
+      setIsMapLoaded(false);
+    };
   }, []);
 
   const changeMapStyle = (style) => {
     if (!map || !mapStyles[style]) return;
     
-    // Сохраняем все векторные слои
-    const vectorLayers = [];
-    map.getLayers().forEach(layer => {
+    // Удаляем все векторные слои (включая маркеры и радиус)
+    map.getLayers().getArray().forEach(layer => {
       if (layer.get('type') === 'vector') {
-        vectorLayers.push(layer);
+        map.removeLayer(layer);
       }
     });
     
-    // Удаляем все слои
-    map.getLayers().clear();
+    // Удаляем все базовые слои
+    map.getLayers().getArray().forEach(layer => {
+      if (layer.get('type') === 'base') {
+        map.removeLayer(layer);
+      }
+    });
     
     // Добавляем новый базовый слой
     const newLayer = mapStyles[style].layer;
     map.addLayer(newLayer);
     
-    // Восстанавливаем векторные слои
-    vectorLayers.forEach(layer => map.addLayer(layer));
+    // Восстанавливаем слой препятствий
+    if (obstaclesLayer) {
+      map.addLayer(obstaclesLayer);
+    }
     
     setCurrentStyle(style);
   };
@@ -129,7 +142,6 @@ export const useMap = () => {
   const updateObstacles = (bbox) => {
     if (!obstaclesLayer) return;
     
-    // Преобразуем координаты из проекции карты в WGS84
     const southWest = toLonLat([bbox[0], bbox[1]]);
     const northEast = toLonLat([bbox[2], bbox[3]]);
     
@@ -146,12 +158,7 @@ export const useMap = () => {
       out skel qt;`;
     
     fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
+      .then(response => response.json())
       .then(data => {
         const features = new GeoJSON().readFeatures(data);
         obstaclesLayer.getSource().addFeatures(features);
@@ -169,6 +176,7 @@ export const useMap = () => {
     toggleMapStyle,
     mapStyles,
     obstaclesLayer,
-    updateObstacles
+    updateObstacles,
+    isMapLoaded
   };
 };

@@ -21,7 +21,8 @@ const App = () => {
     mapStyles,
     // eslint-disable-next-line no-unused-vars
     obstaclesLayer,
-    updateObstacles
+    updateObstacles,
+    isMapLoaded
   } = useMap();
   
   const { selectedDrone, setSelectedDrone, drones, loading, error } = useDroneSelection();
@@ -45,6 +46,14 @@ const App = () => {
     setElevationPoints,
     setShowLegend
   );
+
+ 	const toggleMapStyleHandler = () => {
+    toggleMapStyle();
+    // Очищаем маршрут и скрываем легенду при смене стиля
+    routeCalculation.clearAllLayers();
+    setShowLegend(false);
+    setElevationPoints([]);
+  };
 
   const closeNotification = () => {
     setNotification(prev => ({ ...prev, isOpen: false }));
@@ -118,13 +127,14 @@ const App = () => {
         }}
         isLoading={isLoading}
         currentStyle={currentStyle}
-        toggleMapStyle={toggleMapStyle}
+        toggleMapStyle={toggleMapStyleHandler}
         mapStyles={mapStyles}
+        isMapLoaded={isMapLoaded}
       >
-        <RadioAnalysisLegend visible={showLegend} />
+        {showLegend && <RadioAnalysisLegend visible={showLegend} />}
       </FullscreenMap>
 
-      {showLegend && (
+      {showLegend && elevationPoints.length > 0 && (
         <ElevationProfile 
           elevationData={elevationPoints} 
           radioAnalysis={routeCalculation.radioAnalysis} 
