@@ -10,6 +10,7 @@ import NotificationModal from './components/NotificationModal/NotificationModal'
 import RadioAnalysisLegend from './components/RadioAnalysisLegend/RadioAnalysisLegend';
 import ElevationProfile from './components/ElevationProfile/ElevationProfile';
 import DroneManagement from './components/DroneManagement/DroneManagement';
+import Header from './components/Header/Header';
 import './App.css';
 
 const App = () => {
@@ -120,47 +121,55 @@ const App = () => {
   }, [map, selectedDrone, routeCalculation]);
 
   return (
-    <div className="app-container">
-      <h1>Маршрут дрона</h1>
-      
-      <div className="controls">
-        <SearchLocation {...locationSearch} /> 
-      </div>
+    <div className="app-container" style={{ paddingTop: '80px' }}>
+  		<Header showManagement={showManagement} setShowManagement={setShowManagement} />
+  
+		<section id="search-section">
+			<div className="controls">
+				<SearchLocation {...locationSearch} />
+			</div>
+		</section>
 
-      <FullscreenMap 
-        isFullscreen={isMapFullscreen}
-        toggleFullscreen={() => setIsMapFullscreen(prev => !prev)}
-        mapRef={mapRef}
-        map={map}
-        onReset={() => {
-          routeCalculation.clearAllLayers();
-          setShowLegend(false);
-          setElevationPoints([]);
-        }}
-        isLoading={isLoading}
-        currentStyle={currentStyle}
-        toggleMapStyle={handleToggleMapStyle}
-        mapStyles={mapStyles}
-        isMapLoaded={isMapLoaded}
-        loadingProgress={loadingProgress}
-      >
-        <RadioAnalysisLegend visible={showLegend} />
-      </FullscreenMap>
+			<section id="map-section">
+					<FullscreenMap 
+						isFullscreen={isMapFullscreen}
+						toggleFullscreen={() => setIsMapFullscreen(prev => !prev)}
+						mapRef={mapRef}
+						map={map}
+						onReset={() => {
+							routeCalculation.clearAllLayers();
+							setShowLegend(false);
+							setElevationPoints([]);
+						}}
+						isLoading={isLoading}
+						currentStyle={currentStyle}
+						toggleMapStyle={handleToggleMapStyle}
+						mapStyles={mapStyles}
+						isMapLoaded={isMapLoaded}
+						loadingProgress={loadingProgress}
+					>
+						<RadioAnalysisLegend visible={showLegend} />
+					</FullscreenMap>
+				</section>
 
-      {showLegend && elevationPoints.length > 0 && (
-        <ElevationProfile 
-          elevationData={elevationPoints} 
-          radioAnalysis={routeCalculation.radioAnalysis} 
-        />
-      )}
+				{showLegend && elevationPoints.length > 0 && (
+					<section id="analysis-section">
+						<ElevationProfile 
+							elevationData={elevationPoints} 
+							radioAnalysis={routeCalculation.radioAnalysis} 
+						/>
+					</section>
+      	)}
 
-      <DronesList 
-        selectedDrone={selectedDrone} 
-        onSelectDrone={setSelectedDrone}
-        drones={drones}
-        loading={loading}
-        error={error} 
-      />
+			<section id="drones-section">
+				<DronesList 
+					selectedDrone={selectedDrone} 
+					onSelectDrone={setSelectedDrone}
+					drones={drones}
+					loading={loading}
+					error={error} 
+				/>
+			</section>
 
       <button 
         onClick={() => setShowManagement(!showManagement)}
@@ -169,7 +178,11 @@ const App = () => {
         {showManagement ? 'Закрыть управление' : 'Управление дронами'}
       </button>
       
-      {showManagement && <DroneManagement />}
+      {showManagement && (
+				<section id="management-section">
+					<DroneManagement />
+				</section>
+			)}
 
       <NotificationModal 
         isOpen={notification.isOpen}

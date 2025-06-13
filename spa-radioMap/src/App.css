@@ -1,4 +1,5 @@
 .app-container {
+		padding-top: 90px;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
@@ -241,6 +242,11 @@
   background: #2c6b94;
 }
 
+.search-section {
+  margin-top: 20px;
+  margin-bottom: 30px;
+}
+
 /* Стили для индикатора загрузки */
 .loading-indicator {
   background: rgba(255, 255, 255, 0.9);
@@ -253,7 +259,7 @@
 /* Адаптивные стили */
 @media (max-width: 768px) {
   .app-container {
-    padding: 10px;
+    padding-top: 60px;
   }
   
   .app-container h1 {
