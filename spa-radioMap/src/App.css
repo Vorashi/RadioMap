@@ -14,15 +14,15 @@
 }
 
 .app-container h1 {
-    text-align: center;
-    margin-bottom: 30px;
-    color: #333;
+  text-align: center;
+  margin-bottom: 30px;
+  color: #333;
 }
 
 .controls {
-    margin-bottom: 20px;
-    display: flex;
-    justify-content: center;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
 }
 
 .map-wrapper {
@@ -38,88 +38,88 @@
 }
 
 .map-container {
-    width: 100%;
-    height: 100%;
+  width: 100%;
+  height: 100%;
 }
 
 .fullscreen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 50vh;
-    z-index: 1000;
-    margin: 0;
-    border-radius: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 50vh;
+  z-index: 1000;
+  margin: 0;
+  border-radius: 0;
 }
 
 .map-actions-container {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .loading-indicator {
-    background: rgba(255,255,255,0.9);
-    padding: 8px 16px;
-    border-radius: 4px;
-    font-size: 14px;
+  background: rgba(255,255,255,0.9);
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
 }
 
 .map-control-button {
-    width: 40px;
-    height: 40px;
-    background: rgba(255,255,255,0.9);
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
+  width: 40px;
+  height: 40px;
+  background: rgba(255,255,255,0.9);
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
 }
 
 .fullscreen-toggle-button {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    width: 40px;
-    height: 40px;
-    background: rgba(255,255,255,0.9);
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1;
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  background: rgba(255,255,255,0.9);
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
 }
 
 .elevation-profile-container {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
 }
 
 .elevation-profile-container h3 {
-    margin-top: 0;
-    color: #333;
-    font-size: 18px;
-    margin-bottom: 15px;
+  margin-top: 0;
+  color: #333;
+  font-size: 18px;
+  margin-bottom: 15px;
 }
 
 .elevation-chart {
-    height: 300px;
+  height: 300px;
 }
 
 .profile-notes {
-    margin-top: 15px;
-    font-size: 14px;
-    color: #666;
-    font-style: italic;
+  margin-top: 15px;
+  font-size: 14px;
+  color: #666;
+  font-style: italic;
 }
 
 .radio-legend.map-overlay {
@@ -127,7 +127,7 @@
   top: 10px;
   left: 10px;
   background: rgba(255, 255, 255, 0.85);
-  z-index: 10; 
+  z-index: 10;
   padding: 15px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -141,7 +141,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  z-index: 10; /* Уменьшаем с 1001 до 10 */
+  z-index: 10;
   background-color: rgba(255, 255, 255, 0.95);
   padding: 10px;
   border-radius: 6px;
@@ -155,13 +155,123 @@
   right: 0;
   background-color: rgba(255, 255, 255, 0.95);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  z-index: 100; /* Увеличиваем z-index шапки */
+  z-index: 100;
   padding: 10px 0;
   backdrop-filter: blur(5px);
   height: 70px;
   display: flex;
   align-items: center;
   transition: all 0.3s ease;
+}
+
+.management-toggle {
+  padding: 10px 20px;
+  background: #3887be;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 20px auto;
+  display: block;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+.management-toggle:hover {
+  background: #2c6b94;
+}
+
+.search-section {
+  margin-top: 20px;
+  margin-bottom: 30px;
+}
+
+.signal-status {
+  font-weight: bold;
+}
+
+.signal-good {
+  color: #4CAF50;
+}
+
+.signal-warning {
+  color: #FF9800;
+}
+
+.signal-critical {
+  color: #F44336;
+}
+
+.drones-container {
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  width: 100%;
+  min-height: 300px;
+}
+
+.drones-grid {
+  display: grid;
+  gap: 20px;
+  padding: 15px 0;
+}
+
+.fullscreen-map-active {
+  overflow: hidden;
+}
+
+.map-actions-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.chart-tooltip {
+  background: white;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.chart-tooltip p {
+  margin: 5px 0;
+  font-size: 14px;
+}
+
+/* Адаптивные стили */
+@media (max-width: 768px) {
+  .app-container {
+    padding-top: 60px;
+  }
+  
+  .app-container h1 {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+  }
+  
+  .management-toggle {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+  
+  .drones-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .drones-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1025px) {
+  .drones-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 /* Темная тема */
@@ -172,7 +282,6 @@ body.dark-theme {
 
 body.dark-theme .app-container {
   background-color: #121212;
-  color: #e0e0e0;
 }
 
 body.dark-theme .drones-container,
@@ -295,241 +404,5 @@ body.dark-theme .modal-header {
 }
 
 body.dark-theme .modal-close-button {
-  color: #e0e0e0;
-}
-
-.radio-legend.map-overlay h4 {
-    margin-top: 0;
-    margin-bottom: 10px;
-    font-size: 16px;
-}
-
-.legend-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 8px;
-}
-
-.legend-color {
-    width: 20px;
-    height: 20px;
-    margin-right: 10px;
-    border-radius: 3px;
-}
-
-.legend-color.green {
-    background-color: rgba(0, 255, 0, 0.7);
-}
-
-.legend-color.orange {
-    background-color: rgba(255, 165, 0, 0.7);
-}
-
-.legend-color.red {
-    background-color: rgba(255, 0, 0, 0.7);
-}
-
-.fullscreen-map-active {
-    overflow: hidden;
-}
-
-.map-actions-container {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    align-items: flex-end;
-}
-
-.loading-indicator {
-    background: rgba(255,255,255,0.9);
-    padding: 8px 16px;
-    border-radius: 4px;
-    font-size: 14px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.elevation-profile-container {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    margin: 20px 0;
-    width: 100%;
-}
-
-.elevation-chart {
-    height: 300px;
-    margin-top: 20px;
-}
-
-.chart-tooltip {
-    background: white;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.chart-tooltip p {
-    margin: 5px 0;
-    font-size: 14px;
-}
-
-.app-container h1 {
-  text-align: center;
-  margin-bottom: 30px;
-  color: #333;
-}
-
-.controls {
-  margin-bottom: 20px;
-  display: flex;
-  justify-content: center;
-}
-
-.management-toggle {
-  padding: 10px 20px;
-  background: #3887be;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  margin: 20px auto;
-  display: block;
-  font-size: 16px;
-  transition: background-color 0.3s;
-}
-
-.management-toggle:hover {
-  background: #2c6b94;
-}
-
-.search-section {
-  margin-top: 20px;
-  margin-bottom: 30px;
-}
-
-/* Стили для индикатора загрузки */
-.loading-indicator {
-  background: rgba(255, 255, 255, 0.9);
-  padding: 8px 16px;
-  border-radius: 4px;
-  font-size: 14px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* Адаптивные стили */
-@media (max-width: 768px) {
-  .app-container {
-    padding-top: 60px;
-  }
-  
-  .app-container h1 {
-    font-size: 1.5rem;
-    margin-bottom: 15px;
-  }
-  
-  .management-toggle {
-    padding: 8px 16px;
-    font-size: 14px;
-  }
-}
-
-/* Темная тема */
-body.dark-theme {
-  background-color: #121212;
-  color: #ffffff;
-}
-
-body.dark-theme .app-container {
-  background-color: #121212;
-}
-
-body.dark-theme .drones-container,
-body.dark-theme .drone-management,
-body.dark-theme .drone-card {
-  background-color: #1e1e1e;
-  color: #ffffff;
-}
-
-body.dark-theme .drone-card {
-  border-color: #333;
-}
-
-body.dark-theme .search-input {
-  background-color: #333;
-  color: #fff;
-  border-color: #444;
-}
-
-.signal-status {
-    font-weight: bold;
-}
-
-.signal-good {
-    color: #4CAF50;
-}
-
-.signal-warning {
-    color: #FF9800;
-}
-
-.signal-critical {
-    color: #F44336;
-}
-
-.drones-container {
-  padding: 20px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  width: 100%;
-  min-height: 300px;
-}
-
-body.dark-theme .drones-container {
-  background: #1e1e1e;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-}
-
-.drones-grid {
-  display: grid;
-  gap: 20px;
-  padding: 15px 0;
-}
-
-@media (max-width: 768px) {
-  .drones-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (min-width: 769px) and (max-width: 1024px) {
-  .drones-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 1025px) {
-  .drones-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-/* Стили для легенды */
-.radio-legend.map-overlay {
-  position: absolute;
-  left: 10px;
-  background: rgba(255, 255, 255, 0.85);
-  z-index: 10;
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  max-width: 220px;
-}
-
-body.dark-theme .radio-legend.map-overlay {
-  background: rgba(30, 30, 30, 0.9);
   color: #e0e0e0;
 }

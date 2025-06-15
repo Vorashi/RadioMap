@@ -8,7 +8,7 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-const drones = [
+let drones = [
     { 
         id: 1,
         name: 'DJI Mavic 3', 

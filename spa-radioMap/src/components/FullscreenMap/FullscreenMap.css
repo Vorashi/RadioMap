@@ -52,18 +52,6 @@
   margin-bottom: 20px;
 }
 
-body.dark-theme .map-loading-overlay {
-  background: rgba(30, 30, 30, 0.95);
-}
-
-body.dark-theme .progress-bar-container {
-  background: #333;
-}
-
-body.dark-theme .map-loading-overlay p {
-  color: #e0e0e0;
-}
-
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
@@ -233,11 +221,40 @@ body.dark-theme .map-loading-overlay p {
 }
 
 .radio-legend.map-overlay.fullscreen-legend {
-  top: 20px; /* Позиционирование в полноэкранном режиме */
+  top: 20px;
   left: 20px;
-  z-index: 1001; /* Увеличиваем для полноэкранного режима */
+  z-index: 1001;
 }
 
+/* Темная тема */
+body.dark-theme .map-loading-overlay {
+  background: rgba(30, 30, 30, 0.95);
+}
+
+body.dark-theme .progress-bar-container {
+  background: #333;
+}
+
+body.dark-theme .map-loading-overlay p {
+  color: #e0e0e0;
+}
+
+body.dark-theme .map-control-button {
+  background-color: #333;
+  color: #e0e0e0;
+  border-color: #444;
+}
+
+body.dark-theme .map-control-button .button-icon {
+  color: #e0e0e0;
+}
+
+body.dark-theme .reset-button {
+  background-color: #3887be;
+  color: #e0e0e0;
+}
+
+/* Адаптивность */
 @media (max-width: 768px) {
   .map-controls-group {
     flex-direction: column;
