@@ -1,11 +1,12 @@
 import React from 'react';
 import '../../App.css';
+import './RadioAnalysisLegend.css';
 
-const RadioAnalysisLegend = ({ visible }) => {
+const RadioAnalysisLegend = ({ visible, isFullscreen }) => {
     if (!visible) return null;
     
     return (
-        <div className="radio-legend map-overlay">
+        <div className={`radio-legend map-overlay ${isFullscreen ? 'fullscreen' : ''}`}>
             <h4>Легенда радиосвязи</h4>
             <div className="legend-item">
                 <div className="legend-color green"></div>

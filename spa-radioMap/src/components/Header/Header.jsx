@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-scroll';
 import './Header.css';
-import logo from '../../assets/drone-map-logo.svg';
+import logo from '../../assets/drone-map-logo.png';
 import GithubIcon from '../../assets/github-logo-icons.svg';
 import SunIcon from '../../assets/icons8-sun.svg';
 import MoonIcon from '../../assets/clear-night-weather-symbol-of-crescent-moon-with-stars_icon-icons.com_64205.svg';

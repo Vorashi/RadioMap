@@ -1,11 +1,16 @@
 .app-container {
-		padding-top: 90px;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    padding: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
+  padding-top: 90px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+#drones-section {
+  width: 100%;
+  margin: 20px 0;
 }
 
 .app-container h1 {
@@ -21,13 +26,15 @@
 }
 
 .map-wrapper {
-    position: relative;
-    height: 500px;
-    width: 100%;
-    margin-bottom: 20px;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  position: relative;
+  width: 100%;
+  height: 50vh;
+  transition: height 0.3s ease;
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  z-index: 1;
 }
 
 .map-container {
@@ -41,7 +48,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    height: 100vh;
+    height: 50vh;
     z-index: 1000;
     margin: 0;
     border-radius: 0;
@@ -116,15 +123,179 @@
 }
 
 .radio-legend.map-overlay {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    background: rgba(255, 255, 255, 0.85);
-    z-index: 1000;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    max-width: 200px;
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(255, 255, 255, 0.85);
+  z-index: 10; 
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  max-width: 200px;
+}
+
+.map-controls-group {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 10; /* Уменьшаем с 1001 до 10 */
+  background-color: rgba(255, 255, 255, 0.95);
+  padding: 10px;
+  border-radius: 6px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+}
+
+.app-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 100; /* Увеличиваем z-index шапки */
+  padding: 10px 0;
+  backdrop-filter: blur(5px);
+  height: 70px;
+  display: flex;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+/* Темная тема */
+body.dark-theme {
+  background-color: #121212;
+  color: #e0e0e0;
+}
+
+body.dark-theme .app-container {
+  background-color: #121212;
+  color: #e0e0e0;
+}
+
+body.dark-theme .drones-container,
+body.dark-theme .drone-management,
+body.dark-theme .drone-card {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+  border-color: #333;
+}
+
+body.dark-theme .drone-card {
+  border-color: #444;
+}
+
+body.dark-theme .search-input {
+  background-color: #333;
+  color: #fff;
+  border-color: #444;
+}
+
+body.dark-theme .radio-legend.map-overlay {
+  background: rgba(30, 30, 30, 0.9);
+  color: #e0e0e0;
+}
+
+body.dark-theme .radio-legend.map-overlay h4 {
+  color: #e0e0e0;
+}
+
+body.dark-theme .map-controls-group {
+  background-color: rgba(30, 30, 30, 0.9);
+  color: #e0e0e0;
+}
+
+body.dark-theme .map-control-button {
+  background-color: #333;
+  color: #e0e0e0;
+  border-color: #444;
+}
+
+body.dark-theme .map-control-button .button-icon {
+  color: #e0e0e0;
+}
+
+body.dark-theme .reset-button {
+  background-color: #3887be;
+  color: #e0e0e0;
+}
+
+body.dark-theme .loading-indicator {
+  color: #64b5f6;
+  background-color: rgba(30, 30, 30, 0.9);
+}
+
+body.dark-theme .suggestions-list {
+  background: #333;
+  border-color: #444;
+  color: #e0e0e0;
+}
+
+body.dark-theme .suggestion-item {
+  border-bottom-color: #444;
+}
+
+body.dark-theme .suggestion-item:hover {
+  background-color: #444;
+}
+
+body.dark-theme .elevation-profile-container {
+  background: #1e1e1e;
+  color: #e0e0e0;
+}
+
+body.dark-theme .elevation-profile-container h3 {
+  color: #e0e0e0;
+}
+
+body.dark-theme .profile-notes {
+  color: #aaa;
+}
+
+body.dark-theme .chart-tooltip {
+  background: #333;
+  border-color: #444;
+  color: #e0e0e0;
+}
+
+body.dark-theme .drone-management {
+  background: #1e1e1e;
+  color: #e0e0e0;
+}
+
+body.dark-theme .drone-form {
+  background: #252525;
+}
+
+body.dark-theme input,
+body.dark-theme select,
+body.dark-theme textarea {
+  background: #333;
+  color: #e0e0e0;
+  border-color: #444;
+}
+
+body.dark-theme th {
+  background-color: #252525;
+}
+
+body.dark-theme td {
+  border-bottom-color: #444;
+}
+
+body.dark-theme .modal-content {
+  background-color: #252525;
+  color: #e0e0e0;
+}
+
+body.dark-theme .modal-header {
+  color: #e0e0e0;
+}
+
+body.dark-theme .modal-close-button {
+  color: #e0e0e0;
 }
 
 .radio-legend.map-overlay h4 {
@@ -202,15 +373,6 @@
 .chart-tooltip p {
     margin: 5px 0;
     font-size: 14px;
-}
-
-.app-container {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
 }
 
 .app-container h1 {
@@ -314,4 +476,60 @@ body.dark-theme .search-input {
 
 .signal-critical {
     color: #F44336;
+}
+
+.drones-container {
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  width: 100%;
+  min-height: 300px;
+}
+
+body.dark-theme .drones-container {
+  background: #1e1e1e;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.drones-grid {
+  display: grid;
+  gap: 20px;
+  padding: 15px 0;
+}
+
+@media (max-width: 768px) {
+  .drones-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .drones-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1025px) {
+  .drones-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Стили для легенды */
+.radio-legend.map-overlay {
+  position: absolute;
+  left: 10px;
+  background: rgba(255, 255, 255, 0.85);
+  z-index: 10;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  max-width: 220px;
+}
+
+body.dark-theme .radio-legend.map-overlay {
+  background: rgba(30, 30, 30, 0.9);
+  color: #e0e0e0;
 }

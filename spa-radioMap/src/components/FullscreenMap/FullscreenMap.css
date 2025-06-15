@@ -7,6 +7,7 @@
   border: 1px solid #ddd;
   border-radius: 4px;
   overflow: hidden;
+  z-index: 1;
 }
 
 .map-wrapper.fullscreen {
@@ -38,7 +39,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 5;
 }
 
 .map-loading-spinner {
@@ -49,6 +50,18 @@
   height: 50px;
   animation: spin 1s linear infinite;
   margin-bottom: 20px;
+}
+
+body.dark-theme .map-loading-overlay {
+  background: rgba(30, 30, 30, 0.95);
+}
+
+body.dark-theme .progress-bar-container {
+  background: #333;
+}
+
+body.dark-theme .map-loading-overlay p {
+  color: #e0e0e0;
 }
 
 @keyframes spin {
@@ -217,6 +230,12 @@
 
 .fullscreen-map-active {
   overflow: hidden;
+}
+
+.radio-legend.map-overlay.fullscreen-legend {
+  top: 20px; /* Позиционирование в полноэкранном режиме */
+  left: 20px;
+  z-index: 1001; /* Увеличиваем для полноэкранного режима */
 }
 
 @media (max-width: 768px) {

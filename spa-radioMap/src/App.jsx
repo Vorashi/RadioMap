@@ -148,7 +148,7 @@ const App = () => {
 						isMapLoaded={isMapLoaded}
 						loadingProgress={loadingProgress}
 					>
-						<RadioAnalysisLegend visible={showLegend} />
+						<RadioAnalysisLegend  visible={showLegend} isFullscreen={isMapFullscreen} />
 					</FullscreenMap>
 				</section>
 

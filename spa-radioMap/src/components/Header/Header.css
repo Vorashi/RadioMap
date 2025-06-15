@@ -169,6 +169,39 @@ body.dark-theme .language-dropdown button:hover {
   }
 }
 
+body.dark-theme .app-header {
+  background-color: rgba(30, 30, 30, 0.95);
+  color: #e0e0e0;
+}
+
+body.dark-theme .nav-link {
+  color: #e0e0e0;
+}
+
+body.dark-theme .nav-link:hover {
+  color: #64b5f6;
+  background-color: rgba(100, 181, 246, 0.1);
+}
+
+body.dark-theme .language-dropdown {
+  background: #333;
+  color: #e0e0e0;
+}
+
+body.dark-theme .language-dropdown button:hover {
+  background-color: #444;
+}
+
+body.dark-theme .scroll-to-top-button {
+  background: #333;
+  color: #e0e0e0;
+  border: 1px solid #444;
+}
+
+body.dark-theme .scroll-to-top-button:hover {
+  background: #444;
+}
+
 @media (max-width: 768px) {
   .header-content {
     padding: 0 10px;

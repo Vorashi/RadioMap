@@ -1,10 +1,19 @@
 .radio-legend {
-    background: white;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
-    max-width: 400px;
+  position: absolute;
+  top: 80px;
+  left: 10px;
+  background: rgba(255, 255, 255, 0.85);
+  z-index: 10;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  max-width: 220px;
+}
+
+.radio-legend.fullscreen {
+  top: 20px;
+  left: 20px;
+  z-index: 1001;
 }
 
 .radio-legend h4 {
@@ -56,4 +65,66 @@
         transparent 3px,
         transparent 6px
     );
+}
+
+body.dark-theme .radio-legend h4 {
+  color: #e0e0e0;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+body.dark-theme .legend-item {
+  color: #e0e0e0;
+}
+
+.legend-color {
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.legend-color.green {
+  background-color: rgba(0, 255, 0, 0.7);
+}
+
+.legend-color.orange {
+  background-color: rgba(255, 165, 0, 0.7);
+}
+
+.legend-color.red {
+  background-color: rgba(255, 0, 0, 0.7);
+}
+
+.legend-line {
+  width: 20px;
+  height: 3px;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.legend-line.dashed {
+  background: repeating-linear-gradient(
+    to right,
+    #333,
+    #333 3px,
+    transparent 3px,
+    transparent 6px
+  );
+}
+
+body.dark-theme .legend-line.dashed {
+  background: repeating-linear-gradient(
+    to right,
+    #e0e0e0,
+    #e0e0e0 3px,
+    transparent 3px,
+    transparent 6px
+  );
 }
